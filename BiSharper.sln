@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiSharper.Common", "src\BiSharper.Common\BiSharper.Common.csproj", "{D143FF91-EC98-4D36-BF7B-7AF4F349028A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Rv", "Rv", "{D5B4521E-A9F3-41B1-94EC-779E8BD315FE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiSharper.Bank", "src\rv\BiSharper.Bank\BiSharper.Bank.csproj", "{8D61F417-331C-48D3-8253-982B1872846A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D143FF91-EC98-4D36-BF7B-7AF4F349028A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D143FF91-EC98-4D36-BF7B-7AF4F349028A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D143FF91-EC98-4D36-BF7B-7AF4F349028A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D143FF91-EC98-4D36-BF7B-7AF4F349028A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D61F417-331C-48D3-8253-982B1872846A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D61F417-331C-48D3-8253-982B1872846A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D61F417-331C-48D3-8253-982B1872846A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D61F417-331C-48D3-8253-982B1872846A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8D61F417-331C-48D3-8253-982B1872846A} = {D5B4521E-A9F3-41B1-94EC-779E8BD315FE}
+	EndGlobalSection
+EndGlobal
