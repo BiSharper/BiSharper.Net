@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using BiSharper.Common.Compression;
 using BiSharper.FileBank.Models;
 
 namespace BiSharper.FileBank;
@@ -31,17 +32,24 @@ public class Bank
     public bool HasEntry(string name) => _dataEntries.ContainsKey(name);
 
     public EntryMeta? GetMetadata(string name) => _dataEntries.GetValueOrDefault(name);
-
-    public Span<byte> ReadRaw(EntryMeta meta)
+    
+    public byte[]? ReadRaw(string name) => GetMetadata(name) is not { } meta ? null : ReadRaw(meta);
+    
+    public byte[]? ReadRaw(EntryMeta meta)
     {
         if (meta.Offset > _binaryLength)
         {
-            return Span<byte>.Empty;
+            return null;
+        }
+
+        if (meta.BufferLength == 0)
+        {
+            return Array.Empty<byte>();
         }
 
         _input.Seek(meta.Offset, SeekOrigin.Begin);
         var bufferSize = (int)meta.BufferLength;
-        Span<byte> buffer = new byte[bufferSize];
+        var buffer = new byte[bufferSize];
         var foundBytes = _input.Read(buffer);
         if (foundBytes != bufferSize)
         {
@@ -50,6 +58,41 @@ public class Bank
 
         return buffer;
     }
+    
+    public byte[]? Read(string name) => GetMetadata(name) is not { } meta ? null : Read(meta);
+    
+    public byte[]? Read(EntryMeta meta)
+    {
+        if (ReadRaw(meta) is not { } raw)
+        {
+            return null;
+        }
+
+        if (raw.Length == 0)
+        {
+            return raw;
+        }
+
+        switch (meta.Mime)
+        {
+            case EntryMime.Decompressed:
+                return raw;
+            case EntryMime.Compressed:
+            {
+                var goal = raw.Length;
+                return BisCompatableLZSS.Decode(raw, out var decompressed, (uint)goal) != goal ? raw : decompressed;
+            }
+            case EntryMime.Encrypted:
+                throw new Exception("Encrypted entries may not be read!");
+            case EntryMime.Version:
+                throw new Exception("Version entries may not be read!");
+            default:
+                throw new Exception("Unknown entry may not be read!");
+        }
+
+    }
+    
+
     
     private static void ReadEntryList(
         Stream input,
