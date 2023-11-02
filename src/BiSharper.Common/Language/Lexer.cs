@@ -1,15 +1,15 @@
-﻿namespace BiSharper.Common;
+﻿namespace BiSharper.Common.Language;
 
-public class Lexer<T>
+public class Lexer
 {
-    private readonly T[] _contents;
+    private readonly char[] _contents;
     public int Position { get; set; }
     public int Length => _contents.Length;
-    public T? Previous => _contents.ElementAtOrDefault(Position - 1);
-    public T? Current => _contents.ElementAtOrDefault(Position);
-    public T? Next => _contents.ElementAtOrDefault(Position + 1);
+    public char? Previous => _contents.ElementAtOrDefault(Position - 1);
+    public char? Current => _contents.ElementAtOrDefault(Position);
+    public char? Next => _contents.ElementAtOrDefault(Position + 1);
 
-    public Lexer(T[] contents)
+    public Lexer(char[] contents)
     {
         _contents = contents;
         Position = 0;
@@ -22,9 +22,9 @@ public class Lexer<T>
     public bool IsEOF() => Position >= Length;
     public void Reset() => Position = 0;
 
-    public bool Take(T target)
+    public bool Take(char target)
     {
-        if (Current?.Equals(target) == true)
+        if (Current == target)
         {
             StepForward();
             return true;
@@ -33,25 +33,25 @@ public class Lexer<T>
         return false;
     }
 
-    public T? Consume()
+    public char? Consume()
     {
         var target = Current;
         StepForward();
         return target;
     }
 
-    public void SeekUntil(T target)
+    public void SeekUntil(char target)
     {
-        while (!IsEOF() && Current?.Equals(target) == false)
+        while (!IsEOF() && Current != target)
         {
             StepForward();
         }
     }
 
-    public (uint, T?) ConsumeNot(T target)
+    public (uint, char?) ConsumeNot(char target)
     {
         uint count = 0;
-        for (; !IsEOF() && Consume()?.Equals(target) == true; count++) {}
+        for (; !IsEOF() && Consume() == target; count++) {}
         return (count, Current);
     }
 
