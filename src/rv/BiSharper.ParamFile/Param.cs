@@ -1,5 +1,9 @@
-﻿namespace BiSharper.ParamFile;
+﻿using BiSharper.Common.Language;
+using BiSharper.RvProc;
 
-public class Param
+namespace BiSharper.ParamFile;
+
+public class Param : IBisParsable<RvProcessorContext>
 {
+    public void Parse(Lexer lexer) => ParamParser.Parse(lexer, this);
 }

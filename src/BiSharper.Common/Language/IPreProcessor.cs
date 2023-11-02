@@ -2,5 +2,5 @@
 
 public interface IPreProcessor
 {
-    void PreProcess(ref Lexer lexer);
+    void Process(ref Lexer lexer);
 }

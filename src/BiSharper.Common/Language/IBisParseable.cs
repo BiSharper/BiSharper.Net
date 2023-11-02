@@ -1,17 +1,16 @@
 ﻿namespace BiSharper.Common.Language;
 
-public interface IBisParseable<out TAST>
+public interface IBisParsable
 {
-    public TAST Parse(Lexer lexer);
-    
+    public void Parse(Lexer lexer);
 }
 
-public interface IBisParsable<T, out TAST, in TPreProcessor>: IBisParseable<TAST> where TPreProcessor: IPreProcessor
+public interface IBisParsable<in TPreProcessor>: IBisParsable where TPreProcessor: IPreProcessor
 {
-    public TAST Parse(Lexer lexer, TPreProcessor processor)
+    public void Parse(Lexer lexer, TPreProcessor processor)
     {
-        processor.PreProcess(ref lexer);
-        return Parse(lexer);
+        processor.Process(ref lexer);
+        Parse(lexer);
     }
 
 }
