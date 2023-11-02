@@ -4,7 +4,7 @@ using BiSharper.FileBank.Models;
 
 namespace BiSharper.FileBank;
 
-public class Bank
+public readonly struct Bank
 {
     private readonly Stream _input;
     private readonly long _binaryLength;
@@ -91,8 +91,6 @@ public class Bank
         }
 
     }
-    
-
     
     private static void ReadEntryList(
         Stream input,
