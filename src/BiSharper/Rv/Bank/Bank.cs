@@ -1,4 +1,5 @@
-﻿using BiSharper.Common.IO.Compression;
+﻿using System.Collections.Concurrent;
+using BiSharper.Common.IO.Compression;
 using BiSharper.Rv.Bank.Models;
 
 namespace BiSharper.Rv.Bank;
@@ -7,8 +8,8 @@ public partial class Bank
 {
     private readonly Stream _input;
     private readonly long _binaryLength;
-    private readonly Dictionary<string, string> _properties = new();
-    private readonly Dictionary<string, EntryMeta> _dataEntries = new();
+    private readonly ConcurrentDictionary<string, string> _properties = new();
+    private readonly ConcurrentDictionary<string, EntryMeta> _dataEntries = new();
     
     public string? GetProperty(string name) => _properties.GetValueOrDefault(name);
 
@@ -22,26 +23,29 @@ public partial class Bank
     
     public byte[]? ReadRaw(EntryMeta meta)
     {
-        if (meta.Offset > _binaryLength)
+        lock (_input)
         {
-            return null;
-        }
+            if (meta.Offset > _binaryLength)
+            {
+                return null;
+            }
 
-        if (meta.BufferLength == 0)
-        {
-            return Array.Empty<byte>();
-        }
+            if (meta.BufferLength == 0)
+            {
+                return Array.Empty<byte>();
+            }
+            
+            _input.Seek(meta.Offset, SeekOrigin.Begin);
+            var bufferSize = (int)meta.BufferLength;
+            var buffer = new byte[bufferSize];
+            var foundBytes = _input.Read(buffer);
+            if (foundBytes != bufferSize)
+            {
+                throw new IOException($"Expected enough room for {bufferSize} (+4 for signed) bytes at position {_input.Position} but could only read {foundBytes}.");
+            }
 
-        _input.Seek(meta.Offset, SeekOrigin.Begin);
-        var bufferSize = (int)meta.BufferLength;
-        var buffer = new byte[bufferSize];
-        var foundBytes = _input.Read(buffer);
-        if (foundBytes != bufferSize)
-        {
-            throw new IOException($"Expected enough room for {bufferSize} (+4 for signed) bytes at position {_input.Position} but could only read {foundBytes}.");
+            return buffer;
         }
-
-        return buffer;
     }
     
     public byte[]? Read(string name) => GetMetadata(name) is not { } meta ? null : Read(meta);

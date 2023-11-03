@@ -16,22 +16,6 @@ public partial class Bank
     {
         _input = input;
         _binaryLength = _input.Length;
-        ReadEntryList(_input, _properties, _dataEntries, calculateOffsets, readPropertiesOnInnerVersion, breakOnInnerVersion, ignoreImpossibleOffsets, headerOffsetIsImpossible);
-    }
-    
-    private static void ReadEntryList(
-        Stream input,
-        IDictionary<string, string> properties,
-        IDictionary<string, EntryMeta> dataEntries,
-        bool calculateOffsets = true,
-        bool readPropertiesOnInnerVersion = false,
-        bool breakOnInnerVersion = true,
-        bool ignoreImpossibleOffsets = true,
-        bool headerOffsetIsImpossible = true,
-        long? streamLength = null
-    )
-    {
-        streamLength ??= input.Length;
         var entries = new Dictionary<string, EntryMeta>();
         var offset = (int)input.Position;
         var first = true;
@@ -46,14 +30,12 @@ public partial class Bank
 
             if (entryName.Length > 0)
             {
-                entryName = entryName.ToLower().Replace('/', '\\');
-                entries[entryName] = entryMeta;
+                entries[entryName.ToLower().Replace('/', '\\')] = entryMeta;
             }
             else if(entryMeta is { Mime: EntryMime.Version, BufferLength: 0, Timestamp: 0 })
             {
-                if (first || readPropertiesOnInnerVersion) ReadVersionProperties(input, properties);
-                if(breakOnInnerVersion) break;
-                continue;
+                if (first || readPropertiesOnInnerVersion) ReadVersionProperties(input, _properties);
+                if(breakOnInnerVersion && !first) break;
             }
             else
             {
@@ -68,14 +50,13 @@ public partial class Bank
         {
             var correctedMeta = calculateOffsets ? meta with { Offset = meta.Offset + headerEnd } : meta;
             if (!(ignoreImpossibleOffsets && ((correctedMeta.Offset < headerEnd && headerOffsetIsImpossible) ||
-                                              correctedMeta.Offset > streamLength|| 
-                                              correctedMeta.Offset + correctedMeta.BufferLength >= streamLength)))
+                                              correctedMeta.Offset > _binaryLength|| 
+                                              correctedMeta.Offset + correctedMeta.BufferLength >= _binaryLength)))
             {
-                dataEntries[name] = correctedMeta;
+                _dataEntries[name] = correctedMeta;
             }
-        }
+        }   
     }
-
 
     private static void ReadVersionProperties(Stream input, IDictionary<string, string> properties)
     {
@@ -109,11 +90,12 @@ public partial class Bank
 
     private static int TakeInt(Stream input)
     {
-        Span<byte> buffer = stackalloc byte[sizeof(int)];
+        const int size = sizeof(int);
+        Span<byte> buffer = stackalloc byte[size];
         var foundBytes = input.Read(buffer);
-        if (foundBytes != sizeof(int))
+        if (foundBytes != size)
         {
-            throw new IOException($"Expected enough room for four bytes at position {input.Position} but could only read {foundBytes}.");
+            throw new IOException($"Expected enough room for {size} bytes at position {input.Position} but could only read {foundBytes}.");
         }
         
         return BitConverter.ToInt32(buffer);
