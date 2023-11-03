@@ -1,4 +1,5 @@
-﻿using BiSharper.Common.IO;
+﻿using System.Text;
+using BiSharper.Common.Lex;
 using BiSharper.Common.Parse;
 
 namespace BiSharper.Rv.Proc;
@@ -7,25 +8,26 @@ public partial class RvProcessorContext: IProcessed
 {
     public void Process(ref Lexer lexer)
     {
-        Span<char> preprocessed = stackalloc char[lexer.Length];
+        var memory = new MemoryStream(new byte[1024], true);
+        var writer = new StreamWriter(memory);
         var i = -1;
 
         var quoted = false;
         var newLine = true;
-        while (!lexer.IsEOF() && ++i <= lexer.Length)
+        while (!lexer.EOF)
         {
             if(ConsumeStrippedNot(lexer, '\r') is not { } current) break;
 
             if (quoted)
             {
-                lexer.ConsumeUntil('"').CopyTo(preprocessed[i..]);
+                writer.Write(lexer.ConsumeUntil('"'));
                 quoted = false;
                 goto Continue;
             }
             
             if (ValidIdChar(current, true))
             {
-                ProcessIdentifier(lexer, current, false, ref preprocessed);
+                ProcessIdentifier(lexer, current, false, writer);
                 goto Continue;
             }
 
@@ -43,16 +45,16 @@ public partial class RvProcessorContext: IProcessed
                         switch (directive)
                         {
                             case "include":
-                                ProcessIncludeDirective(lexer, ref preprocessed);
+                                ProcessIncludeDirective(lexer, writer);
                                 break;
                             case "define":
                                 ProcessDefineDirective(lexer);
                                 break;
                             case "ifdef":
-                                ProcessIfDirective(lexer, false, ref preprocessed);
+                                ProcessIfDirective(lexer, false, writer);
                                 break;
                             case "ifndef":
-                                ProcessIfDirective(lexer, true, ref preprocessed);
+                                ProcessIfDirective(lexer, true, writer);
                                 break;
                             case "undef":
                                 ProcessUndefineDirective(lexer);
@@ -62,13 +64,13 @@ public partial class RvProcessorContext: IProcessed
                         }
                         break;
                     }
-                    ProcessIdentifier(lexer, null, true, ref preprocessed);
+                    ProcessIdentifier(lexer, null, true, writer);
                     break;
                 }
                 case '/':
                     if ( ConsumeSpace(lexer) is not { } nextAfterSlash)
                     {
-                        preprocessed[i] = '/'; 
+                        writer.Write('/');
                         break;
                     }
 
@@ -81,7 +83,7 @@ public partial class RvProcessorContext: IProcessed
                             TraverseBlockComment(lexer);
                             break;
                         default: 
-                            preprocessed[i] = '/'; 
+                            writer.Write('/');
                             break;
                     }
                     break;
@@ -90,17 +92,17 @@ public partial class RvProcessorContext: IProcessed
                     continue;
                 case '"':
                     quoted = !quoted;
-                    preprocessed[i] = current; 
+                    writer.Write(current);
                     break;
                 
-                default: preprocessed[i] = current; break;
+                default: writer.Write(current); break;
             }
             
             Continue:
             if (newLine) newLine = false;
         }
-
-        lexer = new Lexer(preprocessed.ToArray());
+        writer.Flush();
+        lexer = new Lexer(memory, lexer.Encoding, lexer.CacheSize);
     }
 
     //todo
@@ -114,17 +116,17 @@ public partial class RvProcessorContext: IProcessed
     }
 
     //todo
-    private void ProcessIfDirective(Lexer lexer, bool negated, ref Span<char> preprocessed)
+    private void ProcessIfDirective(Lexer lexer, bool negated, StreamWriter writer)
     {
     }
     
     //todo
-    private void ProcessIncludeDirective(Lexer lexer, ref Span<char> preprocessed)
+    private void ProcessIncludeDirective(Lexer lexer, StreamWriter writer)
     {
     }
     
     //todo
-    private void ProcessIdentifier(Lexer lexer, char? useFirst, bool mustExist, ref Span<char> preprocessed)
+    private void ProcessIdentifier(Lexer lexer, char? useFirst, bool mustExist, StreamWriter writer)
     {
         var identifier = ConsumeIdentifier(lexer, 1024, useFirst);
     }
@@ -138,7 +140,7 @@ public partial class RvProcessorContext: IProcessed
     
     private static char? ConsumeSpace(Lexer lexer)
     {
-        while (lexer.Current < 33 && lexer.Current != '\n' && !lexer.IsEOF())
+        while (lexer.Current < 33 && lexer.Current != '\n' && !lexer.EOF)
         {
             lexer.StepForward();
         }
@@ -169,7 +171,7 @@ public partial class RvProcessorContext: IProcessed
         Func<char, bool> checkCondition
     )
     {
-        if (lexer.IsEOF()) throw new Exception("Premature EOF.");
+        if (lexer.EOF) throw new Exception("Premature EOF.");
         Span<char> buffer = new char[maxSize];
         if (maxSize == 0) return buffer;
         var i = 0;
@@ -180,7 +182,7 @@ public partial class RvProcessorContext: IProcessed
             buffer[i] = current;
             
 
-            if (++i == maxSize || lexer.IsEOF())
+            if (++i == maxSize || lexer.EOF)
             {
                 return buffer;
             }
@@ -188,7 +190,7 @@ public partial class RvProcessorContext: IProcessed
             current = ConsumeStripped(lexer) ?? throw new Exception("Premature EOF.");
         }
         
-        lexer.StepBack();
+        lexer.StepBackward();
         return buffer;
     }
 
@@ -206,7 +208,7 @@ public partial class RvProcessorContext: IProcessed
         {
             if (lexer.ConsumeNot('\r') != '\n')
             {
-                lexer.StepBack();
+                lexer.StepBackward();
                 return '\r';
             }
 
@@ -219,7 +221,7 @@ public partial class RvProcessorContext: IProcessed
     private static char? ConsumeStrippedNot(Lexer lexer, char target)
     {
         var last = ConsumeStripped(lexer);
-        while (last == target && !lexer.IsEOF())
+        while (last == target && !lexer.EOF)
         {
             last = ConsumeStripped(lexer);
         }
@@ -235,7 +237,7 @@ public partial class RvProcessorContext: IProcessed
             return;
         }
 
-        while (!lexer.IsEOF() && (last != '*' || current != '/'))
+        while (!lexer.EOF && (last != '*' || current != '/'))
         {
             last = current;
 
@@ -250,7 +252,7 @@ public partial class RvProcessorContext: IProcessed
             return;
         }
 
-        while (!lexer.IsEOF() && current != '\n')
+        while (!lexer.EOF && current != '\n')
         {
             current = lexer.Consume() ?? throw new IOException("Unexpected EOF");
         }

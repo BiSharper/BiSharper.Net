@@ -1,4 +1,4 @@
-﻿using BiSharper.Common.IO;
+﻿using BiSharper.Common.Lex;
 
 namespace BiSharper.Common.Parse;
 
