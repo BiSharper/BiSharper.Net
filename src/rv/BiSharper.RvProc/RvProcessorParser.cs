@@ -7,17 +7,50 @@ public static class RvProcessorParser
     public static void Process(ref Lexer lexer, RvProcessorContext context)
     {
         Span<char> preprocessed = stackalloc char[lexer.Length];
-        while (!lexer.IsEOF())
+        var i = -1;
+
+        var quoted = false;
+        while (!lexer.IsEOF() && ++i <= lexer.Length)
         {
-            var current = lexer.ConsumeStrippedNot('\r');
-            if(current is null) break;
-            
+            if(lexer.ConsumeStrippedNot('\r') is not { } current) break;
+            if (current.ValidIdChar(true))
+            {
+                lexer.ProcessIdentifier(current, false, context, ref preprocessed);
+                continue;
+            }
 
-
+            switch (current)
+            {
+                case '"': quoted = !quoted; continue;
+                case '#':
+                {
+                    if (!lexer.Take('#'))
+                    {
+                        lexer.ProcessDirective(context, ref preprocessed);
+                        continue;
+                    }
+                    lexer.ProcessIdentifier(null, true, context, ref preprocessed);
+                    continue;
+                }
+                default: preprocessed[i] = current; continue;
+            }
         }
 
         lexer = new Lexer(preprocessed.ToArray());
     }
+
+    private static void ProcessDirective(this Lexer lexer, RvProcessorContext context, ref Span<char> preprocessed)
+    {
+        throw new NotImplementedException();
+    }
+    
+    private static void ProcessIdentifier(this Lexer lexer, char? useFirst, bool mustExist, RvProcessorContext context, ref Span<char> preprocessed)
+    {
+        var identifier = lexer.ConsumeIdentifier(1024, useFirst);
+
+        throw new NotImplementedException();
+    }
+
 
     private static string ConsumeIdentifier(
         this Lexer lexer,
@@ -25,7 +58,7 @@ public static class RvProcessorParser
         char? useFirst
     )
     {
-        var isFirst = true;
+        var isFirst = !useFirst.HasValue;
         var bytes = lexer.IterateByCondition(maxSize, useFirst, current =>
         {
             bool isValid = current.ValidIdChar(isFirst);
