@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using BiSharper.Common.Language;
+﻿using BiSharper.Common.Language;
 
 namespace BiSharper.RvProc;
 
@@ -18,7 +17,7 @@ public static class RvProcessorParser
 
             if (quoted)
             {
-                lexer.ConsumeUntil('"');
+                lexer.ConsumeUntil('"').CopyTo(preprocessed[i..]);
                 quoted = false;
                 goto Continue;
             }
