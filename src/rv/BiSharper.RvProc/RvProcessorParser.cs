@@ -1,4 +1,5 @@
-﻿using BiSharper.Common.Language;
+﻿using System.Diagnostics.CodeAnalysis;
+using BiSharper.Common.Language;
 
 namespace BiSharper.RvProc;
 
@@ -36,23 +37,42 @@ public static class RvProcessorParser
                     if (newLine && nextAfterHash != '#')
                     {
                         newLine = false;
-                        lexer.StepBack();
-                        
-                        lexer.ProcessDirective(context, ref preprocessed);
+                        var directive = lexer.ConsumeIdentifier(1024, lexer.ConsumeSpace());
+                        if (!lexer.AssertDirectiveSpace()) throw new Exception($"Expected space after {directive} directive!");
+
+                        switch (directive)
+                        {
+                            case "include":
+                                lexer.ProcessIncludeDirective(context, ref preprocessed);
+                                break;
+                            case "define":
+                                lexer.ProcessDefineDirective(context);
+                                break;
+                            case "ifdef":
+                                lexer.ProcessIfDirective(false, context, ref preprocessed);
+                                break;
+                            case "ifndef":
+                                lexer.ProcessIfDirective(true, context, ref preprocessed);
+                                break;
+                            case "undef":
+                                lexer.ProcessUndefineDirective(context);
+                                break;
+                            default:
+                                throw new Exception("Unknown directive!");
+                        }
                         break;
                     }
                     lexer.ProcessIdentifier(null, true, context, ref preprocessed);
                     break;
                 }
                 case '/':
-                    var nextAfterSlash = lexer.ConsumeSpace();
-                    if (nextAfterSlash is not { } next)
+                    if ( lexer.ConsumeSpace() is not { } nextAfterSlash)
                     {
                         preprocessed[i] = '/'; 
                         break;
                     }
 
-                    switch (next)
+                    switch (nextAfterSlash)
                     {
                         case '/':
                             lexer.TraverseLineComment();
@@ -83,28 +103,39 @@ public static class RvProcessorParser
         lexer = new Lexer(preprocessed.ToArray());
     }
 
-    private static void TraverseBlockComment(this Lexer lexer)
+    //todo
+    private static void ProcessDefineDirective(this Lexer lexer, RvProcessorContext context)
     {
-        throw new NotImplementedException();
     }
     
-    private static void TraverseLineComment(this Lexer lexer)
+    //todo
+    private static void ProcessUndefineDirective(this Lexer lexer, RvProcessorContext context)
     {
-        throw new NotImplementedException();
     }
 
-    private static void ProcessDirective(this Lexer lexer, RvProcessorContext context, ref Span<char> preprocessed)
+    //todo
+    private static void ProcessIfDirective(this Lexer lexer, bool negated, RvProcessorContext context, ref Span<char> preprocessed)
     {
-        throw new NotImplementedException();
     }
     
+    //todo
+    private static void ProcessIncludeDirective(this Lexer lexer, RvProcessorContext context, ref Span<char> preprocessed)
+    {
+    }
+    
+    //todo
     private static void ProcessIdentifier(this Lexer lexer, char? useFirst, bool mustExist, RvProcessorContext context, ref Span<char> preprocessed)
     {
         var identifier = lexer.ConsumeIdentifier(1024, useFirst);
-
-        throw new NotImplementedException();
     }
-
+    
+    private static bool AssertDirectiveSpace(this Lexer lexer)
+    {
+        if(lexer.ConsumeStrippedNot('\r') is not { } next) return false;
+        lexer.ConsumeCountNot(' ', out var spaceCount);
+        return spaceCount > 0;
+    }
+    
     private static char? ConsumeSpace(this Lexer lexer)
     {
         while (lexer.Current < 33 && lexer.Current != '\n' && !lexer.IsEOF())
@@ -194,5 +225,34 @@ public static class RvProcessorParser
         }
 
         return last;
+    }
+    
+    private static void TraverseBlockComment(this Lexer lexer)
+    {
+        char? last = null;
+        if (lexer.Consume() is not { } current)
+        {
+            return;
+        }
+
+        while (!lexer.IsEOF() && (last != '*' || current != '/'))
+        {
+            last = current;
+
+            current = lexer.Consume() ?? throw new IOException("Unexpected EOF");
+        }
+    }
+    
+    private static void TraverseLineComment(this Lexer lexer)
+    {
+        if (lexer.Consume() is not { } current)
+        {
+            return;
+        }
+
+        while (!lexer.IsEOF() && current != '\n')
+        {
+            current = lexer.Consume() ?? throw new IOException("Unexpected EOF");
+        }
     }
 }
