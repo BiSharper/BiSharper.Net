@@ -47,12 +47,22 @@ public class Lexer
             StepForward();
         }
     }
-
-    public (uint, char?) ConsumeNot(char target)
+    public char? ConsumeCountNot(char target, out uint count)
     {
-        uint count = 0;
-        for (; !IsEOF() && Consume() == target; count++) {}
-        return (count, Current);
+        char? last = null;
+        for (count = 0; !IsEOF() && (last = Consume()) == target; count++) {}
+        return last;
+    }
+
+    public char? ConsumeNot(char target)
+    {
+        var last = Consume();
+        while (!IsEOF() && last == target)
+        {
+            last = Consume();
+        }
+
+        return last;
     }
 
 
