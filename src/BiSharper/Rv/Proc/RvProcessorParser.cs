@@ -1,10 +1,11 @@
-﻿using BiSharper.Common.Language;
+﻿using BiSharper.Common.IO;
+using BiSharper.Common.Parse;
 
-namespace BiSharper.RvProc;
+namespace BiSharper.Rv.Proc;
 
-public static class RvProcessorParser
+public partial class RvProcessorContext: IProcessed
 {
-    public static void Process(ref Lexer lexer, RvProcessorContext context)
+    public void Process(ref Lexer lexer)
     {
         Span<char> preprocessed = stackalloc char[lexer.Length];
         var i = -1;
@@ -13,7 +14,7 @@ public static class RvProcessorParser
         var newLine = true;
         while (!lexer.IsEOF() && ++i <= lexer.Length)
         {
-            if(lexer.ConsumeStrippedNot('\r') is not { } current) break;
+            if(ConsumeStrippedNot(lexer, '\r') is not { } current) break;
 
             if (quoted)
             {
@@ -22,9 +23,9 @@ public static class RvProcessorParser
                 goto Continue;
             }
             
-            if (current.ValidIdChar(true))
+            if (ValidIdChar(current, true))
             {
-                lexer.ProcessIdentifier(current, false, context, ref preprocessed);
+                ProcessIdentifier(lexer, current, false, ref preprocessed);
                 goto Continue;
             }
 
@@ -32,40 +33,40 @@ public static class RvProcessorParser
             {
                 case '#':
                 {
-                    var nextAfterHash = lexer.ConsumeStripped();
+                    var nextAfterHash = ConsumeStripped(lexer);
                     if (newLine && nextAfterHash != '#')
                     {
                         newLine = false;
-                        var directive = lexer.ConsumeIdentifier(1024, lexer.ConsumeSpace());
-                        if (!lexer.AssertDirectiveSpace()) throw new Exception($"Expected space after {directive} directive!");
+                        var directive = ConsumeIdentifier(lexer, 1024, ConsumeSpace(lexer));
+                        if (!AssertDirectiveSpace(lexer)) throw new Exception($"Expected space after {directive} directive!");
 
                         switch (directive)
                         {
                             case "include":
-                                lexer.ProcessIncludeDirective(context, ref preprocessed);
+                                ProcessIncludeDirective(lexer, ref preprocessed);
                                 break;
                             case "define":
-                                lexer.ProcessDefineDirective(context);
+                                ProcessDefineDirective(lexer);
                                 break;
                             case "ifdef":
-                                lexer.ProcessIfDirective(false, context, ref preprocessed);
+                                ProcessIfDirective(lexer, false, ref preprocessed);
                                 break;
                             case "ifndef":
-                                lexer.ProcessIfDirective(true, context, ref preprocessed);
+                                ProcessIfDirective(lexer, true, ref preprocessed);
                                 break;
                             case "undef":
-                                lexer.ProcessUndefineDirective(context);
+                                ProcessUndefineDirective(lexer);
                                 break;
                             default:
                                 throw new Exception("Unknown directive!");
                         }
                         break;
                     }
-                    lexer.ProcessIdentifier(null, true, context, ref preprocessed);
+                    ProcessIdentifier(lexer, null, true, ref preprocessed);
                     break;
                 }
                 case '/':
-                    if ( lexer.ConsumeSpace() is not { } nextAfterSlash)
+                    if ( ConsumeSpace(lexer) is not { } nextAfterSlash)
                     {
                         preprocessed[i] = '/'; 
                         break;
@@ -74,10 +75,10 @@ public static class RvProcessorParser
                     switch (nextAfterSlash)
                     {
                         case '/':
-                            lexer.TraverseLineComment();
+                            TraverseLineComment(lexer);
                             goto Continue;
                         case '*': 
-                            lexer.TraverseBlockComment();
+                            TraverseBlockComment(lexer);
                             break;
                         default: 
                             preprocessed[i] = '/'; 
@@ -103,39 +104,39 @@ public static class RvProcessorParser
     }
 
     //todo
-    private static void ProcessDefineDirective(this Lexer lexer, RvProcessorContext context)
+    private void ProcessDefineDirective(Lexer lexer)
     {
     }
     
     //todo
-    private static void ProcessUndefineDirective(this Lexer lexer, RvProcessorContext context)
+    private void ProcessUndefineDirective(Lexer lexer)
     {
     }
 
     //todo
-    private static void ProcessIfDirective(this Lexer lexer, bool negated, RvProcessorContext context, ref Span<char> preprocessed)
+    private void ProcessIfDirective(Lexer lexer, bool negated, ref Span<char> preprocessed)
     {
     }
     
     //todo
-    private static void ProcessIncludeDirective(this Lexer lexer, RvProcessorContext context, ref Span<char> preprocessed)
+    private void ProcessIncludeDirective(Lexer lexer, ref Span<char> preprocessed)
     {
     }
     
     //todo
-    private static void ProcessIdentifier(this Lexer lexer, char? useFirst, bool mustExist, RvProcessorContext context, ref Span<char> preprocessed)
+    private void ProcessIdentifier(Lexer lexer, char? useFirst, bool mustExist, ref Span<char> preprocessed)
     {
-        var identifier = lexer.ConsumeIdentifier(1024, useFirst);
+        var identifier = ConsumeIdentifier(lexer, 1024, useFirst);
     }
     
-    private static bool AssertDirectiveSpace(this Lexer lexer)
+    private static bool AssertDirectiveSpace(Lexer lexer)
     {
-        if(lexer.ConsumeStrippedNot('\r') is not { } next) return false;
+        if(ConsumeStrippedNot(lexer, '\r') is not { } next) return false;
         lexer.ConsumeCountNot(' ', out var spaceCount);
         return spaceCount > 0;
     }
     
-    private static char? ConsumeSpace(this Lexer lexer)
+    private static char? ConsumeSpace(Lexer lexer)
     {
         while (lexer.Current < 33 && lexer.Current != '\n' && !lexer.IsEOF())
         {
@@ -146,15 +147,15 @@ public static class RvProcessorParser
     }
 
     private static string ConsumeIdentifier(
-        this Lexer lexer,
+        Lexer lexer,
         uint maxSize,
         char? useFirst
     )
     {
         var isFirst = !useFirst.HasValue;
-        var bytes = lexer.IterateByCondition(maxSize, useFirst, current =>
+        var bytes = IterateByCondition(lexer, maxSize, useFirst, current =>
         {
-            bool isValid = current.ValidIdChar(isFirst);
+            bool isValid = ValidIdChar(current, isFirst);
             isFirst = false;
             return isValid;
         });
@@ -162,7 +163,7 @@ public static class RvProcessorParser
     }
 
     private static Span<char> IterateByCondition(
-        this Lexer lexer,
+        Lexer lexer,
         uint maxSize,
         char? useFirst,
         Func<char, bool> checkCondition
@@ -172,7 +173,7 @@ public static class RvProcessorParser
         Span<char> buffer = new char[maxSize];
         if (maxSize == 0) return buffer;
         var i = 0;
-        var current = useFirst ?? (lexer.ConsumeStripped() ?? throw new Exception("Premature EOF."));
+        var current = useFirst ?? (ConsumeStripped(lexer) ?? throw new Exception("Premature EOF."));
         while (checkCondition(current!))
         {
             
@@ -184,21 +185,21 @@ public static class RvProcessorParser
                 return buffer;
             }
 
-            current = lexer.ConsumeStripped() ?? throw new Exception("Premature EOF.");
+            current = ConsumeStripped(lexer) ?? throw new Exception("Premature EOF.");
         }
         
         lexer.StepBack();
         return buffer;
     }
 
-    private static bool ValidIdChar(this char c, bool isFirst) =>  isFirst && c >= '0' || c <= '9' ||
+    private static bool ValidIdChar(char c, bool isFirst) =>  isFirst && c >= '0' || c <= '9' ||
         c >= 'a' ||
         c <= 'z' ||
         c >= 'A' ||
         c <= 'Z' ||
         c == '_';
 
-    private static char? ConsumeStripped(this Lexer lexer)
+    private static char? ConsumeStripped(Lexer lexer)
     {
         var current = lexer.ConsumeNot('\r');
         while (current == '\\')
@@ -215,7 +216,7 @@ public static class RvProcessorParser
         return current;
     }
     
-    private static char? ConsumeStrippedNot(this Lexer lexer, char target)
+    private static char? ConsumeStrippedNot(Lexer lexer, char target)
     {
         var last = ConsumeStripped(lexer);
         while (last == target && !lexer.IsEOF())
@@ -226,7 +227,7 @@ public static class RvProcessorParser
         return last;
     }
     
-    private static void TraverseBlockComment(this Lexer lexer)
+    private static void TraverseBlockComment(Lexer lexer)
     {
         char? last = null;
         if (lexer.Consume() is not { } current)
@@ -242,7 +243,7 @@ public static class RvProcessorParser
         }
     }
     
-    private static void TraverseLineComment(this Lexer lexer)
+    private static void TraverseLineComment(Lexer lexer)
     {
         if (lexer.Consume() is not { } current)
         {

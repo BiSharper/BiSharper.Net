@@ -1,4 +1,4 @@
-﻿namespace BiSharper.FileBank.Models;
+﻿namespace BiSharper.Rv.Bank.Models;
 
 public sealed record EntryMeta
 {

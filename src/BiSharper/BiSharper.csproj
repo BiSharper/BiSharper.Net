@@ -6,9 +6,6 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\BiSharper.Common\BiSharper.Common.csproj" />
-      <ProjectReference Include="..\BiSharper.RvProc\BiSharper.RvProc.csproj" />
-    </ItemGroup>
+
 
 </Project>

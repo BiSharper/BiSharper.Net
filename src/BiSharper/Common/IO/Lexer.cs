@@ -1,4 +1,4 @@
-﻿namespace BiSharper.Common.Language;
+﻿namespace BiSharper.Common.IO;
 
 public class Lexer
 {

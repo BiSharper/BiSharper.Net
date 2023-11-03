@@ -1,11 +1,13 @@
-﻿namespace BiSharper.Common.Language;
+﻿using BiSharper.Common.IO;
 
-public interface IBisParsable
+namespace BiSharper.Common.Parse;
+
+public interface IParsed
 {
     public void Parse(Lexer lexer);
 }
 
-public interface IBisParsable<in TPreProcessor>: IBisParsable where TPreProcessor: IPreProcessor
+public interface IParsed<in TPreProcessor>: IParsed where TPreProcessor: IProcessed
 {
     public void Parse(Lexer lexer, TPreProcessor processor)
     {

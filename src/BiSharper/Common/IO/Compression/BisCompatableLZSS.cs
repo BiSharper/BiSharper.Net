@@ -1,6 +1,7 @@
-﻿using System.Text;
+﻿
+using System.Text;
 
-namespace BiSharper.Common.Compression;
+namespace BiSharper.Common.IO.Compression;
 
 public sealed class BisCompatableLZSS
 {
