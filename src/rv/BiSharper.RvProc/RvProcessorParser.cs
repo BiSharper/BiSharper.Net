@@ -10,33 +10,87 @@ public static class RvProcessorParser
         var i = -1;
 
         var quoted = false;
+        var newLine = true;
         while (!lexer.IsEOF() && ++i <= lexer.Length)
         {
             if(lexer.ConsumeStrippedNot('\r') is not { } current) break;
+
+            if (quoted)
+            {
+                lexer.ConsumeUntil('"');
+                quoted = false;
+                goto Continue;
+            }
+            
             if (current.ValidIdChar(true))
             {
                 lexer.ProcessIdentifier(current, false, context, ref preprocessed);
-                continue;
+                goto Continue;
             }
 
             switch (current)
             {
-                case '"': quoted = !quoted; continue;
                 case '#':
                 {
-                    if (!lexer.Take('#'))
+                    var nextAfterHash = lexer.ConsumeStripped();
+                    if (newLine && nextAfterHash != '#')
                     {
+                        newLine = false;
+                        lexer.StepBack();
+                        
                         lexer.ProcessDirective(context, ref preprocessed);
-                        continue;
+                        break;
                     }
                     lexer.ProcessIdentifier(null, true, context, ref preprocessed);
-                    continue;
+                    break;
                 }
-                default: preprocessed[i] = current; continue;
+                case '/':
+                    var nextAfterSlash = lexer.ConsumeSpace();
+                    if (nextAfterSlash is not { } next)
+                    {
+                        preprocessed[i] = '/'; 
+                        break;
+                    }
+
+                    switch (next)
+                    {
+                        case '/':
+                            lexer.TraverseLineComment();
+                            goto Continue;
+                        case '*': 
+                            lexer.TraverseBlockComment();
+                            break;
+                        default: 
+                            preprocessed[i] = '/'; 
+                            break;
+                    }
+                    break;
+                case '\n':
+                    newLine = true;
+                    continue;
+                case '"':
+                    quoted = !quoted;
+                    preprocessed[i] = current; 
+                    break;
+                
+                default: preprocessed[i] = current; break;
             }
+            
+            Continue:
+            if (newLine) newLine = false;
         }
 
         lexer = new Lexer(preprocessed.ToArray());
+    }
+
+    private static void TraverseBlockComment(this Lexer lexer)
+    {
+        throw new NotImplementedException();
+    }
+    
+    private static void TraverseLineComment(this Lexer lexer)
+    {
+        throw new NotImplementedException();
     }
 
     private static void ProcessDirective(this Lexer lexer, RvProcessorContext context, ref Span<char> preprocessed)
@@ -51,6 +105,15 @@ public static class RvProcessorParser
         throw new NotImplementedException();
     }
 
+    private static char? ConsumeSpace(this Lexer lexer)
+    {
+        while (lexer.Current < 33 && lexer.Current != '\n' && !lexer.IsEOF())
+        {
+            lexer.StepForward();
+        }
+
+        return lexer.Current;
+    }
 
     private static string ConsumeIdentifier(
         this Lexer lexer,

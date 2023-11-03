@@ -47,6 +47,13 @@ public class Lexer
             StepForward();
         }
     }
+
+    public char[] ConsumeUntil(char target)
+    {
+        var start = Position;
+        SeekUntil(target);
+        return _contents[start..Position];
+    }
     public char? ConsumeCountNot(char target, out uint count)
     {
         char? last = null;
@@ -64,8 +71,4 @@ public class Lexer
 
         return last;
     }
-
-
-
-
 }
