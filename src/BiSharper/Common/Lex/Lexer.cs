@@ -2,16 +2,15 @@
 
 namespace BiSharper.Common.Lex;
 
-//TODO Disposal pattern
-public class Lexer
+public sealed partial class Lexer : IDisposable
 {
     private readonly Stream _stream;
     private readonly int _maxBufferReadLength;
     private readonly char[] _buffer;
     private readonly Encoder _encoder;
+    private bool _disposed;
     private long _bufferStart, _bufferEnd;
-    private int _bufferIndex;
-    private int _bufferLength;
+    private int _bufferIndex, _bufferLength;
     private bool _lastBuffer;
     private bool EndOfBuffer => _bufferIndex >= _bufferLength;
     
@@ -23,7 +22,8 @@ public class Lexer
     public char? Current;
     public bool EOF => Current == null || Position > Length || (EndOfBuffer && _lastBuffer);
 
-    public Lexer(Stream stream, Encoding encoding, int cacheSize = 8)
+    // ReSharper disable once UnusedParameter.Local C# why no duplicate constructors :(
+    private Lexer(Stream stream, Encoding encoding, int cacheSize, bool _)
     {
         _stream = stream;
         if(!stream.CanSeek) throw new InvalidOperationException("Stream does not support seeking which is needed in the current lexing process.");
@@ -33,7 +33,16 @@ public class Lexer
         _maxBufferReadLength = Encoding.GetMaxByteCount(CacheSize);
         _buffer = new char[CacheSize];
         _bufferStart = _stream.Position;
+    }
+    
+    public Lexer(Stream stream, Encoding encoding, int cacheSize = 8) : this(stream, encoding, cacheSize, false)
+    {
         ConsumeBuffer();
+    }
+
+    ~Lexer()
+    {
+        Dispose();
     }
 
     public void StepBackward()
@@ -62,6 +71,7 @@ public class Lexer
         {
             Previous = Current;
             Current = _buffer[_bufferIndex];
+            return;
         } 
         ConsumeBuffer();
     }
@@ -111,18 +121,21 @@ public class Lexer
         var oldPos = _stream.Position;
         try
         {
-            _stream.Position = index;
-            var maxByteCount = Encoding.GetMaxByteCount(1);
-            Span<byte> buffer = stackalloc byte[maxByteCount];
-            var bytesRead = _stream.Read(buffer);
-            if (bytesRead == 0)
+            lock (_stream)
             {
-                return null;
-            }
+                _stream.Position = index;
+                var maxByteCount = Encoding.GetMaxByteCount(1);
+                Span<byte> buffer = stackalloc byte[maxByteCount];
+                var bytesRead = _stream.Read(buffer);
+                if (bytesRead == 0)
+                {
+                    return null;
+                }
                 
-            Span<char> decodedChars = stackalloc char[Encoding.GetMaxCharCount(maxByteCount)];
-            if( Encoding.GetChars(buffer, decodedChars ) < 1) return null;
-            return decodedChars[0];
+                Span<char> decodedChars = stackalloc char[Encoding.GetMaxCharCount(maxByteCount)];
+                if( Encoding.GetChars(buffer, decodedChars ) < 1) return null;
+                return decodedChars[0];
+            }
         }
         finally
         {
@@ -196,4 +209,26 @@ public class Lexer
             _lastBuffer = _bufferLength != CacheSize && _bufferEnd > Length;
         }
     }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+    
+    private void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+
+            if (disposing)
+            {
+                _stream.Dispose();
+            }
+            
+
+            _disposed = true;
+        }
+    }
+
 }
