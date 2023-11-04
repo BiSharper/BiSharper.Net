@@ -1,5 +1,13 @@
-﻿namespace BiSharper.Rv.VFS;
+﻿using System.Collections.Concurrent;
+using BiSharper.Rv.VFS.Model;
 
-public class RvFilesystem
+namespace BiSharper.Rv.VFS;
+
+public sealed class RvFilesystem : IRvDirectory
 {
+    public RvFilesystem Filesystem { get; }
+    public IEnumerable<IEntry> Entries { get; }
+
+    private readonly ConcurrentBag<IEntry> _entries = new();
+
 }
