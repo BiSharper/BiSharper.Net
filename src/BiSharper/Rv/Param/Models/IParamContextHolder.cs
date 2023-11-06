@@ -1,19 +1,10 @@
 ﻿using System.Collections.Concurrent;
-using BiSharper.Rv.Param.Models;
 using BiSharper.Rv.Param.Models.Value;
 
-namespace BiSharper.Rv.Param;
+namespace BiSharper.Rv.Param.Models;
 
-public partial struct Param : IParamContextHolder
+public interface IParamContextHolder
 {
-    public readonly string Name;
-    
     public ConcurrentDictionary<string, IParamValue> Parameters { get; init; }
     public ConcurrentDictionary<string, ParamContext> Contexts { get; init; }
-    
-    public Param(string name)
-    {
-        Name = name;
-    }
-    
 }
