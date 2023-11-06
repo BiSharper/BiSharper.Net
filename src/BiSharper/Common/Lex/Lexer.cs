@@ -56,7 +56,7 @@ public sealed partial class Lexer : IDisposable
             Array.Copy(_buffer, 0, _buffer, 1, _buffer.Length - 1);
             _buffer[0] = PeekAt(--_bufferStart) ?? throw new Exception("This shouldn't happen.");
             Current = _buffer[0];
-            Previous = null;
+            Previous = _bufferIndex == 0 ? null : _buffer[_bufferIndex - 1];
             return;
         } 
         _bufferIndex--;
@@ -185,7 +185,6 @@ public sealed partial class Lexer : IDisposable
             Previous = Current;
             Span<byte> bBuffer = stackalloc byte[_maxBufferReadLength];
             var bytesRead = _stream.Read(bBuffer);
-            _bufferStart += CacheSize;
             _bufferIndex = 0;
             Span<char> chars = stackalloc char[CacheSize];
 
@@ -204,9 +203,11 @@ public sealed partial class Lexer : IDisposable
             }
 
             _bufferLength = charsProduced;
+            
+            _bufferStart += bytesUsed;
             Current = _bufferLength == 0 ? null : _buffer[_bufferIndex];
             _bufferEnd = _bufferStart + _bufferLength;
-            _lastBuffer = _bufferLength != CacheSize && _bufferEnd > Length;
+            _lastBuffer = _bufferLength != CacheSize;
         }
     }
 

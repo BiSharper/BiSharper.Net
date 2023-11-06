@@ -4,12 +4,13 @@ using BiSharper.Rv.Bank.Models;
 
 namespace BiSharper.Rv.Bank;
 
-public partial class Bank
+public partial class FileBank
 {
     private readonly Stream _input;
     private readonly long _binaryLength;
     private readonly ConcurrentDictionary<string, string> _properties = new();
     private readonly ConcurrentDictionary<string, EntryMeta> _dataEntries = new();
+    public string DefaultPrefix { get; }
     
     public string? GetProperty(string name) => _properties.GetValueOrDefault(name);
 

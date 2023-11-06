@@ -1,20 +1,24 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Immutable;
 
 namespace BiSharper.Rv.VFS.Model;
 
-public interface IRvDirectory
+public interface IRvDirectory : IRvEntry, IRvEntryHolder
 {
-    public IEnumerable<IEntry> Entries { get; }
-
-    
 }
 
-public sealed class RvDirectory : IEntry, IRvDirectory
+public sealed class RvDirectory : IRvDirectory
 {
-    public RvFilesystem Filesystem { get; }
-    public IEnumerable<IEntry> Entries => _entries;
-    
-    private readonly ConcurrentBag<IEntry> _entries = new();
+    public required RvFilesystem Filesystem { get; init; }
+    public required IRvEntryHolder ParentContext { get; init;  }
 
+    private readonly ConcurrentDictionary<string, IRvEntry> _entries = new();
+
+    public T? GetEntry<T>(string name) where T : class, IRvEntry
+    {
+        if (_entries.TryGetValue(name, out var entry))
+        {
+            return entry as T;
+        }
+        return null;
+    }
 }

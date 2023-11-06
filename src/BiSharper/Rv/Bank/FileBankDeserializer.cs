@@ -3,10 +3,11 @@ using BiSharper.Rv.Bank.Models;
 
 namespace BiSharper.Rv.Bank;
 
-public partial class Bank
+public partial class FileBank
 {
-    public Bank(
+    public FileBank(
         Stream input,
+        string defaultPrefix,
         bool calculateOffsets = true,
         bool readPropertiesOnInnerVersion = false,
         bool breakOnInnerVersion = true,
@@ -14,6 +15,7 @@ public partial class Bank
         bool headerOffsetIsImpossible = true
     )
     {
+        DefaultPrefix = defaultPrefix;
         _input = input;
         _binaryLength = _input.Length;
         var entries = new Dictionary<string, EntryMeta>();
