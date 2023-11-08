@@ -2,5 +2,8 @@
 
 public interface IParamStatement
 {
-    
+    public IParamContextHolder ParentContextHolder { get; }
+
+    public ParamContext? ParamContext => ParentContextHolder as ParamContext;
+
 }

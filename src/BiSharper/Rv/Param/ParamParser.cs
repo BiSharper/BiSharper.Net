@@ -4,7 +4,7 @@ using BiSharper.Rv.Proc;
 
 namespace BiSharper.Rv.Param;
 
-public partial struct Param : IParsed<RvProcessorContext>
+public partial struct ParamRoot : IParsed<RvProcessorContext>
 {
     public void Parse(Lexer lexer)
     {

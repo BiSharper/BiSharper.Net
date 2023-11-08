@@ -1,11 +1,10 @@
-﻿namespace BiSharper.Rv.Param.Models.Value;
+﻿namespace BiSharper.Rv.Param.Models.Statement.Value;
 
 public readonly struct ParamLong: IParamValue
 {
     public required long Value { get; init; }
-    
-    public static implicit operator ParamLong(long value) => new ParamLong { Value = value };
-    
+    public required IParamContextHolder ParentContextHolder { get; init; }
+
     public static implicit operator long(ParamLong self) => self.Value;
     
     public string ToText() => Value.ToString();

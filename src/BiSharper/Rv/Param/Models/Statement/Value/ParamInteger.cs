@@ -1,11 +1,9 @@
-﻿namespace BiSharper.Rv.Param.Models.Value;
+﻿namespace BiSharper.Rv.Param.Models.Statement.Value;
 
 public readonly struct ParamInteger : IParamValue
 {
     public required int Value { get; init; }
-    
-
-    public static implicit operator ParamInteger(int value) => new ParamInteger { Value = value };
+    public required IParamContextHolder ParentContextHolder { get; init; }
     
     public static implicit operator int(ParamInteger self) => self.Value;
     

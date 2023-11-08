@@ -1,6 +1,6 @@
-﻿namespace BiSharper.Rv.Param.Models.Value;
+﻿namespace BiSharper.Rv.Param.Models.Statement.Value;
 
-public interface IParamValue
+public interface IParamValue : IParamStatement
 {
     public string ToText();
 }
