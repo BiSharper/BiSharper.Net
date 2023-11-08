@@ -1,5 +1,4 @@
-﻿using System.Text;
-using BiSharper.Common.Lex;
+﻿using BiSharper.Common.Lex;
 using BiSharper.Common.Parse;
 
 namespace BiSharper.Rv.Proc;
@@ -14,9 +13,11 @@ public partial class RvProcessorContext: IProcessed
 
         var quoted = false;
         var newLine = true;
+        var additionalLines = 0;
+        var currentLine = 0;
         while (!lexer.EOF)
         {
-            if(ConsumeStrippedNot(lexer, '\r') is not { } current) break;
+            if(ConsumeStrippedNot(lexer, '\r', ref additionalLines) is not { } current) break;
 
             if (quoted)
             {
@@ -27,20 +28,27 @@ public partial class RvProcessorContext: IProcessed
             
             if (ValidIdChar(current, true))
             {
-                ProcessIdentifier(lexer, current, false, writer);
+                ProcessIdentifier(lexer, ref additionalLines, current, false, writer);
                 goto Continue;
             }
+
+            if (newLine && additionalLines > 0)
+            {
+                currentLine += additionalLines;
+                writer.Write(Enumerable.Repeat((byte)'\n', additionalLines));
+                additionalLines = 0;
+            } 
 
             switch (current)
             {
                 case '#':
                 {
-                    var nextAfterHash = ConsumeStripped(lexer);
+                    var nextAfterHash = ConsumeStripped(lexer, ref additionalLines);
                     if (newLine && nextAfterHash != '#')
                     {
                         newLine = false;
-                        var directive = ConsumeIdentifier(lexer, 1024, ConsumeSpace(lexer));
-                        if (!AssertDirectiveSpace(lexer)) throw new Exception($"Expected space after {directive} directive!");
+                        var directive = ConsumeIdentifier(lexer, ref additionalLines, 1024, ConsumeSpace(lexer));
+                        if (!AssertDirectiveSpace(lexer, ref additionalLines)) throw new Exception($"Expected space after {directive} directive!");
 
                         switch (directive)
                         {
@@ -64,7 +72,7 @@ public partial class RvProcessorContext: IProcessed
                         }
                         break;
                     }
-                    ProcessIdentifier(lexer, null, true, writer);
+                    ProcessIdentifier(lexer, ref additionalLines, null, true, writer);
                     break;
                 }
                 case '/':
@@ -89,6 +97,9 @@ public partial class RvProcessorContext: IProcessed
                     break;
                 case '\n':
                     newLine = true;
+                    writer.Write(current);
+                    currentLine += 1;
+                    
                     continue;
                 case '"':
                     quoted = !quoted;
@@ -126,14 +137,14 @@ public partial class RvProcessorContext: IProcessed
     }
     
     //todo
-    private void ProcessIdentifier(Lexer lexer, char? useFirst, bool mustExist, StreamWriter writer)
+    private void ProcessIdentifier(Lexer lexer, ref int additionalLines, char? useFirst, bool mustExist, StreamWriter writer)
     {
-        var identifier = ConsumeIdentifier(lexer, 1024, useFirst);
+        var identifier = ConsumeIdentifier(lexer, ref additionalLines, 1024, useFirst);
     }
     
-    private static bool AssertDirectiveSpace(Lexer lexer)
+    private static bool AssertDirectiveSpace(Lexer lexer, ref int additionalLines)
     {
-        if(ConsumeStrippedNot(lexer, '\r') is not { } next) return false;
+        if(ConsumeStrippedNot(lexer, '\r', ref additionalLines) is not { } next) return false;
         lexer.ConsumeCountNot(' ', out var spaceCount);
         return spaceCount > 0;
     }
@@ -149,15 +160,16 @@ public partial class RvProcessorContext: IProcessed
     }
 
     private static string ConsumeIdentifier(
-        Lexer lexer,
+        Lexer lexer, 
+        ref int additionalLines,
         uint maxSize,
         char? useFirst
     )
     {
         var isFirst = !useFirst.HasValue;
-        var bytes = IterateByCondition(lexer, maxSize, useFirst, current =>
+        var bytes = IterateByCondition(lexer, ref additionalLines, maxSize, useFirst, current =>
         {
-            bool isValid = ValidIdChar(current, isFirst);
+            var isValid = ValidIdChar(current, isFirst);
             isFirst = false;
             return isValid;
         });
@@ -166,6 +178,7 @@ public partial class RvProcessorContext: IProcessed
 
     private static Span<char> IterateByCondition(
         Lexer lexer,
+        ref int additionalLines,
         uint maxSize,
         char? useFirst,
         Func<char, bool> checkCondition
@@ -175,7 +188,7 @@ public partial class RvProcessorContext: IProcessed
         Span<char> buffer = new char[maxSize];
         if (maxSize == 0) return buffer;
         var i = 0;
-        var current = useFirst ?? (ConsumeStripped(lexer) ?? throw new Exception("Premature EOF."));
+        var current = useFirst ?? (ConsumeStripped(lexer, ref additionalLines) ?? throw new Exception("Premature EOF."));
         while (checkCondition(current!))
         {
             
@@ -187,7 +200,7 @@ public partial class RvProcessorContext: IProcessed
                 return buffer;
             }
 
-            current = ConsumeStripped(lexer) ?? throw new Exception("Premature EOF.");
+            current = ConsumeStripped(lexer, ref additionalLines) ?? throw new Exception("Premature EOF.");
         }
         
         lexer.StepBackward();
@@ -201,7 +214,7 @@ public partial class RvProcessorContext: IProcessed
         c <= 'Z' ||
         c == '_';
 
-    private static char? ConsumeStripped(Lexer lexer)
+    private static char? ConsumeStripped(Lexer lexer, ref int additionalLines)
     {
         var current = lexer.ConsumeNot('\r');
         while (current == '\\')
@@ -213,17 +226,18 @@ public partial class RvProcessorContext: IProcessed
             }
 
             current = lexer.ConsumeNot('\r');
+            additionalLines++;
         }
 
         return current;
     }
     
-    private static char? ConsumeStrippedNot(Lexer lexer, char target)
+    private static char? ConsumeStrippedNot(Lexer lexer, char target, ref int additionalLines)
     {
-        var last = ConsumeStripped(lexer);
+        var last = ConsumeStripped(lexer, ref additionalLines);
         while (last == target && !lexer.EOF)
         {
-            last = ConsumeStripped(lexer);
+            last = ConsumeStripped(lexer, ref additionalLines);
         }
 
         return last;
