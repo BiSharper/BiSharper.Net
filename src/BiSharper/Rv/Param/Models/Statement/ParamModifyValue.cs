@@ -2,7 +2,7 @@
 
 namespace BiSharper.Rv.Param.Models.Statement;
 
-public readonly struct ParamModifyAssignStatement: IParamStatement
+public readonly struct ParamModifyValue: IParamStatement
 {
     public required bool Negated { get; init; }
     public required IParamArray Value { get; init; }
