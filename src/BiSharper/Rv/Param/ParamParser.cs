@@ -2,6 +2,7 @@
 using BiSharper.Common.Lex;
 using BiSharper.Common.Parse;
 using BiSharper.Rv.Param.Models;
+using BiSharper.Rv.Param.Models.Statement;
 using BiSharper.Rv.Proc;
 
 namespace BiSharper.Rv.Param;
@@ -10,11 +11,10 @@ public partial struct ParamRoot : IParsed<RvProcessorContext>
 {
     public void Parse(Lexer lexer)
     {
-        var file = new ParamRoot();
         var contexts = new Stack<IParamContextHolder>();
         var currentLine = 1;
-        contexts.Push(file);
-        for (;;)
+        contexts.Push(this);
+        while (contexts.Peek() is { } currentContext)
         {
             var current = SkipWhitespace(lexer);
             if (current is null)
@@ -34,7 +34,74 @@ public partial struct ParamRoot : IParsed<RvProcessorContext>
 
             if (current is '}')
             {
+                ReadEndContext(lexer, ref currentLine, contexts);
+                continue;
+            }
 
+            var word = GetWord(lexer);
+            switch (word)
+            {
+                case "delete":
+                {
+                    word = GetWord(lexer);
+                    SkipWhitespace(lexer);
+                    if (lexer.Current != ';')
+                    {
+                        throw new Exception($"[{currentLine}] Expected semicolon");
+                    }
+
+                    currentContext.Statements.Add(new ParamDeleteContext
+                    {
+                        ContextName = word,
+                        ParentContextHolder = currentContext
+                    });
+                    break;
+                }
+                case "class":
+                    //TODO
+                    break;
+                case "enum":
+                    //TODO
+                    break;
+                case "__EXEC":
+                    //TODO
+                    break;
+                default:
+                    //TODO
+                    break;
+            }
+
+        }
+    }
+
+    private static void ReadEndContext(Lexer lexer, ref int currentLine, Stack<IParamContextHolder> contexts)
+    {
+        lexer.StepForward();
+        var current = lexer.Current;
+                
+        if (contexts.Count != 1 && lexer.Previous != ';')
+        {
+            var semicolonEncountered = false;
+            while (current is {} currentNotNull && (IsSpace(currentNotNull) || currentNotNull is ';'))
+            {
+                if (!semicolonEncountered && current is ';') semicolonEncountered = true;
+                lexer.StepForward();
+                current = lexer.Current;
+            }
+
+            if (!semicolonEncountered)
+            {
+                throw new Exception($"[{currentLine}] Missing semicolon.");
+            }
+
+            contexts.Pop();
+        }
+        else
+        {
+            while (current is {} currentNotNull && (IsSpace(currentNotNull) || currentNotNull is ';'))
+            {
+                lexer.StepForward();
+                current = lexer.Current;
             }
         }
     }
@@ -63,7 +130,7 @@ public partial struct ParamRoot : IParsed<RvProcessorContext>
         throw new NotImplementedException();
     }
 
-    public static string GetWord(Lexer lexer, ref int lineCount, char[] terminators, out bool quoted)
+    public static string GetString(Lexer lexer, ref int lineCount, char[] terminators, out bool quoted)
     {
         var builder = new StringBuilder();
         SkipWhitespace(lexer);

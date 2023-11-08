@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
 
-namespace BiSharper.Rv.Param.Models.Statement.Value;
+namespace BiSharper.Rv.Param.Models.Value;
 
 public readonly struct ParamArray : IParamArray
 {

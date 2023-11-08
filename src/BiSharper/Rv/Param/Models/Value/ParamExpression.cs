@@ -1,4 +1,4 @@
-﻿namespace BiSharper.Rv.Param.Models.Statement.Value;
+﻿namespace BiSharper.Rv.Param.Models.Value;
 
 public readonly struct ParamExpression : IParamValue
 {

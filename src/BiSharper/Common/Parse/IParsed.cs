@@ -4,15 +4,20 @@ namespace BiSharper.Common.Parse;
 
 public interface IParsed
 {
-    public void Parse(Lexer lexer);
+    public abstract void Parse(Lexer lexer);
 }
 
 public interface IParsed<in TPreProcessor>: IParsed where TPreProcessor: IProcessed
 {
-    public void Parse(Lexer lexer, TPreProcessor processor)
+    
+
+}
+
+public static class ParsedExtensions
+{
+    public static void Parse<TPreProcessor>(this IParsed<TPreProcessor> parser, Lexer lexer, TPreProcessor processor) where TPreProcessor : IProcessed
     {
         processor.Process(ref lexer);
-        Parse(lexer);
+        parser.Parse(lexer);
     }
-
 }
