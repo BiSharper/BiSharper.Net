@@ -1,4 +1,5 @@
-﻿using BiSharper.Common.Math;
+﻿using System.Numerics;
+using BiSharper.Common.Math;
 using BiSharper.Rv.Shape.Flags;
 
 namespace BiSharper.Rv.Shape;
@@ -9,6 +10,7 @@ public class LODShape
     private ShapeRemarks _remarks = 0;
     private float _mass = 0;
     private float _inverseMass;
+    private Vector3 _centerOfMass;
     private BTripointMatrix3 _inverseInertia;
     private BTripointMatrix3 _inertia;
 
@@ -19,9 +21,12 @@ public class LODShape
         if (reversed) _remarks |= ShapeRemarks.Reversed;
         
         int lodCount = 1, version = 0;
-        bool tagged=false;
+        var tagged = false;
         _inverseMass = 1e10f;
-        
+        _inverseInertia = new BTripointMatrix3();
+        _inverseInertia = new BTripointMatrix3();
+        _centerOfMass = new Vector3();
+
 
     }
 }

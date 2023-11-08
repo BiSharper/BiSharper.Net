@@ -1,10 +1,13 @@
 ﻿using System.Text;
+using System.Text.RegularExpressions;
 using BiSharper.Rv.Bank.Models;
 
 namespace BiSharper.Rv.Bank;
 
 public partial class FileBank
 {
+    public const char PboDirSeparator = '\\';
+    
     public FileBank(
         Stream input,
         string defaultPrefix,
@@ -18,12 +21,15 @@ public partial class FileBank
         DefaultPrefix = defaultPrefix;
         _input = input;
         _binaryLength = _input.Length;
+        
         var entries = new Dictionary<string, EntryMeta>();
         var offset = (int)input.Position;
         var first = true;
+        
         for (;;)
         {
             var (entryName, entryMeta) = ReadEntry(input);
+            
             if (calculateOffsets)
             {
                 entryMeta.Offset = (long) (ulong) offset;
@@ -32,7 +38,8 @@ public partial class FileBank
 
             if (entryName.Length > 0)
             {
-                entries[entryName.ToLower().Replace('/', '\\')] = entryMeta;
+                NormalizePath(ref entryName);
+                entries[entryName] = entryMeta;
             }
             else if(entryMeta is { Mime: EntryMime.Version, BufferLength: 0, Timestamp: 0 })
             {
@@ -70,11 +77,21 @@ public partial class FileBank
 
             if (name.Equals("prefix", StringComparison.OrdinalIgnoreCase))
             {
-                name = "prefix";
-                value += '\\';
+                NormalizePrefix(ref value);
             }
             properties.Add(name, value);
         }
+    }
+
+    private static void NormalizePrefix(ref string prefix)
+    {
+        NormalizePath(ref prefix);
+        prefix += PboDirSeparator;
+    }
+
+    public static void NormalizePath(ref string path)
+    {
+        path = PathNormalizationRegex().Replace(path, @"\").ToLower().TrimStart(PboDirSeparator).TrimEnd(PboDirSeparator);
     }
     
     private static (string, EntryMeta) ReadEntry(Stream input) => 
@@ -90,33 +107,37 @@ public partial class FileBank
         }
     );
 
+    private const int IntBufferSize = sizeof(int);
     private static int TakeInt(Stream input)
     {
-        const int size = sizeof(int);
-        Span<byte> buffer = stackalloc byte[size];
+        
+        Span<byte> buffer = stackalloc byte[IntBufferSize];
         var foundBytes = input.Read(buffer);
-        if (foundBytes != size)
+        if (foundBytes != IntBufferSize)
         {
-            throw new IOException($"Expected enough room for {size} bytes at position {input.Position} but could only read {foundBytes}.");
+            throw new IOException($"Expected enough room for {IntBufferSize} bytes at position {input.Position} but could only read {foundBytes}.");
         }
         
         return BitConverter.ToInt32(buffer);
     }
-    
 
+
+    private static readonly byte[] NameBuffer = new byte[1024];
     private static string ReadEntryName(Stream input)
     {
-        Span<byte> buffer = stackalloc byte[1024];
 
         int i;
-        for (i = 0; i < buffer.Length; i++)
+        for (i = 0; i < NameBuffer.Length; i++)
         {
             var current = input.ReadByte();
             if(current <= 0) break;
         
-            buffer[i] = (byte)current;
+            NameBuffer[i] = (byte)current;
         }
         
-        return Encoding.UTF8.GetString(buffer[..i]);
+        return Encoding.UTF8.GetString(NameBuffer[..i]);
     }
+
+    [GeneratedRegex(@"[\\/]+")]
+    private static partial Regex PathNormalizationRegex();
 }

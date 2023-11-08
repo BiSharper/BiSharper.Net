@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Buffers;
+using System.Collections.Concurrent;
 using BiSharper.Common.IO.Compression;
 using BiSharper.Rv.Bank.Models;
 
@@ -8,8 +9,12 @@ public partial class FileBank
 {
     private readonly Stream _input;
     private readonly long _binaryLength;
+    private readonly SemaphoreSlim _readLock = new(1, 1);
     private readonly ConcurrentDictionary<string, string> _properties = new();
     private readonly ConcurrentDictionary<string, EntryMeta> _dataEntries = new();
+    public IEnumerable<KeyValuePair<string, string>> Properties => _properties;
+    public IEnumerable<KeyValuePair<string, EntryMeta>> DataEntries => _dataEntries;
+
     public string DefaultPrefix { get; }
     
     public string? GetProperty(string name) => _properties.GetValueOrDefault(name);
@@ -24,7 +29,9 @@ public partial class FileBank
     
     public byte[]? ReadRaw(EntryMeta meta)
     {
-        lock (_input)
+        _readLock.Wait();
+        var buffer = Array.Empty<byte>();
+        try
         {
             if (meta.Offset > _binaryLength)
             {
@@ -33,19 +40,26 @@ public partial class FileBank
 
             if (meta.BufferLength == 0)
             {
-                return Array.Empty<byte>();
+                return buffer;
             }
             
             _input.Seek(meta.Offset, SeekOrigin.Begin);
             var bufferSize = (int)meta.BufferLength;
-            var buffer = new byte[bufferSize];
+            buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+            var memory = new Memory<byte>(buffer, 0, bufferSize);
             var foundBytes = _input.Read(buffer);
             if (foundBytes != bufferSize)
             {
                 throw new IOException($"Expected enough room for {bufferSize} (+4 for signed) bytes at position {_input.Position} but could only read {foundBytes}.");
             }
-
-            return buffer;
+            var result = new byte[bufferSize];
+            memory.Span[..bufferSize].CopyTo(result);
+            return result;
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+            _readLock.Release();
         }
     }
     
@@ -53,31 +67,38 @@ public partial class FileBank
     
     public byte[]? Read(EntryMeta meta)
     {
-        if (ReadRaw(meta) is not { } raw)
+        var buffer = ReadRaw(meta);
+        if (buffer == null || buffer.Length == 0)
         {
-            return null;
+            return buffer;
         }
 
-        if (raw.Length == 0)
+        try
         {
-            return raw;
-        }
-
-        switch (meta.Mime)
-        {
-            case EntryMime.Decompressed:
-                return raw;
-            case EntryMime.Compressed:
+            byte[] result;
+            switch (meta.Mime)
             {
-                var goal = raw.Length;
-                return BisCompatableLZSS.Decode(raw, out var decompressed, (uint)goal) != goal ? raw : decompressed;
+                case EntryMime.Decompressed:
+                    result = buffer;
+                    break;
+                case EntryMime.Compressed:
+                {
+                    var goal = buffer.Length;
+                    result = BisCompatableLZSS.Decode(buffer, out var decompressed, (uint)goal) != goal ? buffer : decompressed;
+                    break;
+                }
+                case EntryMime.Encrypted:
+                    throw new Exception("Encrypted entries may not be read!");
+                case EntryMime.Version:
+                    throw new Exception("Version entries may not be read!");
+                default:
+                    throw new Exception("Unknown entry may not be read!");
             }
-            case EntryMime.Encrypted:
-                throw new Exception("Encrypted entries may not be read!");
-            case EntryMime.Version:
-                throw new Exception("Version entries may not be read!");
-            default:
-                throw new Exception("Unknown entry may not be read!");
+            return result;
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
         }
 
     }
