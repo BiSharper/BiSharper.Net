@@ -1,8 +1,10 @@
-﻿using System.Text;
+﻿using System.Collections.Concurrent;
+using System.Text;
 using BiSharper.Common.Lex;
 using BiSharper.Common.Parse;
 using BiSharper.Rv.Param.Models;
 using BiSharper.Rv.Param.Models.Statement;
+using BiSharper.Rv.Param.Models.Value;
 using BiSharper.Rv.Proc;
 
 namespace BiSharper.Rv.Param;
@@ -58,8 +60,46 @@ public partial struct ParamRoot : IParsed<RvProcessorContext>
                     break;
                 }
                 case "class":
-                    //TODO
-                    break;
+                {
+                    word = GetWord(lexer);
+                    SkipWhitespace(lexer);
+                    current = lexer.Current;
+                    string? parentClass = null;
+                    switch (current)
+                    {
+                        case ';':
+                            currentContext.Statements.Add(new ParamExternalContext
+                            {
+                                ContextName = word,
+                                ParentContextHolder = currentContext
+                            });
+                            continue;
+                        case ':':
+                            lexer.StepForward();
+                            parentClass = GetWord(lexer);
+                            break;
+                        case '{':
+                            break;
+                        default:
+                            throw new Exception($"[{currentLine}] Expected '{{',';' or ':'. Instead got {current}.");
+                    }
+
+                    if (parentClass != null) SkipWhitespace(lexer);
+                    current = lexer.Current;
+                    
+                    if (current != '{') throw new Exception($"[{currentLine}] Expected '{{', instead got {current}.");
+                    var clazz = new ParamContext
+                    {
+                        ParentContextHolder = currentContext,
+                        ConformsTo = parentClass,
+                        Parameters = new ConcurrentDictionary<string, IParamValue>(),
+                        Contexts = new ConcurrentDictionary<string, ParamContext>(),
+                        Statements = new ConcurrentBag<IParamStatement>()
+                    };
+                    currentContext.Contexts[word] = clazz;
+                    contexts.Push(clazz);
+                    continue;
+                }
                 case "enum":
                     //TODO
                     break;
