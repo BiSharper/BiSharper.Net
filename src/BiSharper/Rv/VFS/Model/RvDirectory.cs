@@ -8,17 +8,10 @@ public interface IRvDirectory : IRvEntry, IRvEntryHolder
 
 public sealed class RvDirectory : IRvDirectory
 {
+    public string Name { get; }
     public required RvFilesystem Filesystem { get; init; }
     public required IRvEntryHolder ParentContext { get; init;  }
+    
+    public ConcurrentBag<IRvEntry> Entries { get; }
 
-    private readonly ConcurrentDictionary<string, IRvEntry> _entries = new();
-
-    public T? GetEntry<T>(string name) where T : class, IRvEntry
-    {
-        if (_entries.TryGetValue(name, out var entry))
-        {
-            return entry as T;
-        }
-        return null;
-    }
 }

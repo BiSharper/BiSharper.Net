@@ -22,13 +22,13 @@ public partial class FileBank
         _input = input;
         _binaryLength = _input.Length;
         
-        var entries = new Dictionary<string, EntryMeta>();
+        var entries = new Dictionary<string, BankEntry>();
         var offset = (int)input.Position;
         var first = true;
         
         for (;;)
         {
-            var (entryName, entryMeta) = ReadEntry(input);
+            var (entryName, entryMeta) = ReadEntry(input, this);
             
             if (calculateOffsets)
             {
@@ -94,16 +94,17 @@ public partial class FileBank
         path = PathNormalizationRegex().Replace(path, @"\").ToLower().TrimStart(PboDirSeparator).TrimEnd(PboDirSeparator);
     }
     
-    private static (string, EntryMeta) ReadEntry(Stream input) => 
+    private static (string, BankEntry) ReadEntry(Stream input, FileBank owner) => 
     (
         ReadEntryName(input),
-        new EntryMeta
+        new BankEntry
         {
             Mime = (EntryMime)TakeInt(input),
             Length = (uint)TakeInt(input),
             Offset = (long)(ulong)TakeInt(input),
             Timestamp = (uint)TakeInt(input),
-            BufferLength = (uint)TakeInt(input)
+            BufferLength = (uint)TakeInt(input),
+            Owner = owner
         }
     );
 

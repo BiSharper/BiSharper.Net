@@ -6,7 +6,7 @@ namespace BiSharper.Rv.Bank;
 
 public partial class FileBank
 {
-    public async Task<byte[]?> ReadRawAsync(EntryMeta meta, CancellationToken cancellationToken = default)
+    public async Task<byte[]?> ReadRawAsync(BankEntry meta, CancellationToken cancellationToken = default)
     {
         await _readLock.WaitAsync(cancellationToken);
         var buffer = Array.Empty<byte>();
@@ -43,7 +43,7 @@ public partial class FileBank
     
     public async Task<byte[]?> ReadAsync(string name, CancellationToken cancellationToken = default) => GetMetadata(name) is not { } meta ? null : await ReadAsync(meta, cancellationToken);
     
-    public async Task<byte[]?> ReadAsync(EntryMeta meta, CancellationToken cancellationToken = default)
+    public async Task<byte[]?> ReadAsync(BankEntry meta, CancellationToken cancellationToken = default)
     {
         var rentedBuffer = await ReadRawAsync(meta, cancellationToken); 
         if (rentedBuffer == null || rentedBuffer.Length == 0)

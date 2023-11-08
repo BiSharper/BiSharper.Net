@@ -6,19 +6,8 @@ namespace BiSharper.Rv.VFS;
 
 public sealed class RvFilesystem : IRvEntryHolder
 {
-    private readonly ConcurrentDictionary<string, FileBank> _contexts = new();
-    private readonly ConcurrentDictionary<string, IRvEntry> _entries = new();
-
-    public T? GetEntry<T>(string name) where T : class, IRvEntry
-    {
-        if (_entries.TryGetValue(name, out var entry))
-        {
-            return entry as T;
-        }
-
-        return null;
-    }
-
+    private readonly ConcurrentBag<FileBank> _contexts = new();
+    public ConcurrentBag<IRvEntry> Entries { get; }
 
     public void LoadBank(FileBank bank)
     {
@@ -26,6 +15,7 @@ public sealed class RvFilesystem : IRvEntryHolder
         {
             throw new Exception("Supplied bank already exists in the filesystem.");
         }
-        
+
+        _contexts.Add(bank);
     }
 }

@@ -11,23 +11,25 @@ public partial class FileBank
     private readonly long _binaryLength;
     private readonly SemaphoreSlim _readLock = new(1, 1);
     private readonly ConcurrentDictionary<string, string> _properties = new();
-    private readonly ConcurrentDictionary<string, EntryMeta> _dataEntries = new();
+    private readonly ConcurrentDictionary<string, BankEntry> _dataEntries = new();
     public IEnumerable<KeyValuePair<string, string>> Properties => _properties;
-    public IEnumerable<KeyValuePair<string, EntryMeta>> DataEntries => _dataEntries;
+    public IEnumerable<KeyValuePair<string, BankEntry>> DataEntries => _dataEntries;
 
     public string DefaultPrefix { get; }
     
     public string? GetProperty(string name) => _properties.GetValueOrDefault(name);
 
+    public string Prefix => GetProperty("prefix") ?? DefaultPrefix;
+
     public bool HasProperty(string name) => _properties.ContainsKey(name);
 
     public bool HasEntry(string name) => _dataEntries.ContainsKey(name);
 
-    public EntryMeta? GetMetadata(string name) => _dataEntries.GetValueOrDefault(name);
+    public BankEntry? GetMetadata(string name) => _dataEntries.GetValueOrDefault(name);
     
     public byte[]? ReadRaw(string name) => GetMetadata(name) is not { } meta ? null : ReadRaw(meta);
     
-    public byte[]? ReadRaw(EntryMeta meta)
+    public byte[]? ReadRaw(BankEntry meta)
     {
         _readLock.Wait();
         var buffer = Array.Empty<byte>();
@@ -65,7 +67,7 @@ public partial class FileBank
     
     public byte[]? Read(string name) => GetMetadata(name) is not { } meta ? null : Read(meta);
     
-    public byte[]? Read(EntryMeta meta)
+    public byte[]? Read(BankEntry meta)
     {
         var buffer = ReadRaw(meta);
         if (buffer == null || buffer.Length == 0)
