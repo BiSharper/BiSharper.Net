@@ -26,6 +26,7 @@ public class LODShape
         _inverseInertia = new BTripointMatrix3();
         _inverseInertia = new BTripointMatrix3();
         _centerOfMass = new Vector3();
+        
 
 
     }

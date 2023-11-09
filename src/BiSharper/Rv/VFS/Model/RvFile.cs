@@ -4,7 +4,6 @@
 public class RvFile : IRvEntry
 {
     public string Name { get; }
-    public required RvFilesystem Filesystem { get; init;  }
     public required IRvEntryHolder ParentContext { get; init;  }
 
     public readonly Stream FileData;

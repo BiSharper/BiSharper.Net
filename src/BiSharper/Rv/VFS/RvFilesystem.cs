@@ -7,7 +7,7 @@ namespace BiSharper.Rv.VFS;
 public sealed class RvFilesystem : IRvEntryHolder
 {
     private readonly ConcurrentBag<FileBank> _contexts = new();
-    public ConcurrentBag<IRvEntry> Entries { get; }
+    public ConcurrentBag<IRvEntry> Entries { get; } = new();
 
     public void LoadBank(FileBank bank)
     {
@@ -17,5 +17,9 @@ public sealed class RvFilesystem : IRvEntryHolder
         }
 
         _contexts.Add(bank);
+        this.CreateDirectory(bank.Prefix);
     }
+    
+    
+    
 }
