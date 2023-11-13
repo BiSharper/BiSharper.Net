@@ -1,11 +1,12 @@
-﻿namespace BiSharper.Rv.Shape;
+﻿using BiSharper.Rv.Shape.Types;
 
-public class DetailLevel
+namespace BiSharper.Rv.Shape;
+
+public readonly struct DetailLevel
 {
-    public LODShape Shape { get; }
+    public LODShape Shape { get; private init; }
+    public List<ShapeFace> Faces { get; private init; }
     
-    
-
     public DetailLevel(BinaryReader reader, LODShape parent)
     {
         Shape = parent;
@@ -40,7 +41,7 @@ public class DetailLevel
             faceCount = posCount;
             flags = 0;
         }
-        
+        Faces = new List<ShapeFace>(faceCount);
 
 
 
