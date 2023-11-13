@@ -1,11 +1,15 @@
-﻿using BiSharper.Rv.Shape.Types;
+﻿using System.Numerics;
+using BiSharper.Rv.Shape.Types;
+using BiSharper.Rv.Shape.Utils;
 
 namespace BiSharper.Rv.Shape;
 
 public readonly struct DetailLevel
 {
     public LODShape Shape { get; private init; }
-    public List<ShapeFace> Faces { get; private init; }
+    public ShapeFace[] Faces { get; private init; }
+    public Vector3[] Normals { get; private init; }
+    public ShapePoint[] Points { get; private init; }
     
     public DetailLevel(BinaryReader reader, LODShape parent)
     {
@@ -14,7 +18,7 @@ public readonly struct DetailLevel
         var signature = reader.ReadBytes(4);
         var headSize = reader.ReadInt32();
         var version = reader.ReadInt32();
-        var posCount = reader.ReadInt32();
+        var pointCount = reader.ReadInt32();
         var normalCount = reader.ReadInt32();
         var faceCount = reader.ReadInt32();
         var flags = reader.ReadInt32();
@@ -34,14 +38,17 @@ public readonly struct DetailLevel
         } else if (signature == "SP3D"u8)
         {
             //Our variables are all out of wack in accordance to this format - lets fix that.
-            posCount = headSize;
+            pointCount = headSize;
             headSize = 16;
             normalCount = version;
             version = 0;
-            faceCount = posCount;
+            faceCount = pointCount;
             flags = 0;
         }
-        Faces = new List<ShapeFace>(faceCount);
+
+        Points = ShapePoint.ReadMulti(reader, extended, this, pointCount);
+        Normals = reader.ReadMultipleVector3(normalCount);
+        Faces = ShapeFace.ReadMulti(reader, extended, material, this, faceCount);
 
 
 

@@ -11,8 +11,12 @@ public readonly struct ShapePoint
     public bool Hidden { get; private init; }
     public PointHint Hints { get; private init; }
     
-    //maybe private level for merge into hints
-    //public PointRemark Remarks { get; private init; }
+    public static ShapePoint[] ReadMulti(BinaryReader reader, bool extended, DetailLevel parent, int count)
+    {
+        var points = new ShapePoint[count];
+        for (var i = 0; i < count; i++) points[i] = new ShapePoint(reader, extended, parent);
+        return points;
+    }
 
     public ShapePoint(BinaryReader reader, bool extended, DetailLevel parent)
     {

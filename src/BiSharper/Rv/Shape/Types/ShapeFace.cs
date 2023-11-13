@@ -37,6 +37,13 @@ public readonly struct ShapeFace
         }
     }
     
+    public static ShapeFace[] ReadMulti(BinaryReader reader, bool extended, bool material, DetailLevel parent, int count)
+    {
+        var faces = new ShapeFace[count];
+        for (var i = 0; i < count; i++) faces[i] = new ShapeFace(reader, extended, material, parent);
+        return faces;
+    }
+    
     public ShapeFace(BinaryReader reader, bool extended, bool material, DetailLevel parent)
     {
         LOD = parent;
