@@ -1,6 +1,6 @@
 ﻿namespace BiSharper.Rv.Shape.Flags;
 
-public enum DetailLevelRemarks
+public enum LodRemark
 {
     
 }

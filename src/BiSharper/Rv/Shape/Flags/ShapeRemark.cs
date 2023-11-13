@@ -1,7 +1,7 @@
 ﻿namespace BiSharper.Rv.Shape.Flags;
 
 [Flags]
-public enum ShapeRemarks
+public enum ShapeRemark
 {
     Normal = 0,
     Reversed = 1,
