@@ -10,6 +10,7 @@ public class LODShape
     private float _mass = 0;
     private List<float> _massArray = new List<float>();
     private float _inverseMass;
+    private DetailLevel[] _levelsOfDetail; 
     private Vector3 _centerOfMass;
     private BTripointMatrix3 _inverseInertia;
     private BTripointMatrix3 _inertia;
@@ -49,6 +50,7 @@ public class LODShape
         }
 
         bool treeCrownNeeded = false, canBlend = false;
+        _levelsOfDetail = new DetailLevel[lodCount];
         for (var i = 0; i < lodCount; i++)
         {
             float resolution = 0;
