@@ -1,5 +1,6 @@
 ﻿namespace BiSharper.Rv.Shape.Flags;
 
+[Flags]
 public enum PointRemark
 {
     OnLand = 0x1,

@@ -1,7 +1,7 @@
 ﻿namespace BiSharper.Rv.Shape.Flags;
 
 [Flags]
-public enum VertexRemark
+public enum PointHint
 {
     ClipNone = 0,
     ClipFront = 1,
@@ -35,6 +35,11 @@ public enum VertexRemark
     
     UserMask = 0xff00000, UserStep = 0x100000,
     UserMax = 0xff,
+    
+    ShineLightHints = MaterialSection.FullLighted * UserStep,
+    HalfLightHints = MaterialSection.HalfLighted * UserStep,
+    AmbientLightHints = MaterialSection.InShadow * UserStep,
+    FullLightHints = MaterialSection.Shining * UserStep,
     
     ClipHints = LandMask | DecalMask | FogMask | LightMask | UserMask
 }
