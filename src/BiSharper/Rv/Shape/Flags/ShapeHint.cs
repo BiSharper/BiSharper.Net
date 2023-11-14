@@ -1,7 +1,7 @@
 ﻿namespace BiSharper.Rv.Shape.Flags;
 
 [Flags]
-public enum PointHint
+public enum ShapeHint : uint
 {
     ClipNone = 0,
     ClipFront = 1,

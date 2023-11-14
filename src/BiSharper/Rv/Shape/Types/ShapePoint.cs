@@ -9,7 +9,7 @@ public readonly struct ShapePoint
     public float Y { get; private init; }
     public float Z { get; private init; }
     public bool Hidden { get; private init; }
-    public PointHint Hints { get; private init; }
+    public ShapeHint Hints { get; private init; }
     
     public static ShapePoint[] ReadMulti(BinaryReader reader, bool extended, DetailLevel parent, int count)
     {
@@ -33,7 +33,7 @@ public readonly struct ShapePoint
         X = reader.ReadSingle();
         Y = reader.ReadSingle();
         Z = reader.ReadSingle();
-        Hints = PointHint.ClipAll;
+        Hints = ShapeHint.ClipAll;
         Hidden = false;
         if (extended)
         {
@@ -45,27 +45,27 @@ public readonly struct ShapePoint
             }
             else
             {
-                if ((remarks & onLand) != 0) Hints |= PointHint.LandOn;
-                else if((remarks & underLand) != 0) Hints |= PointHint.LandUnder;
-                else if((remarks & aboveLand) != 0) Hints |= PointHint.LandAbove;
-                else if((remarks & keepLand) != 0) Hints |= PointHint.LandKeep;
+                if ((remarks & onLand) != 0) Hints |= ShapeHint.LandOn;
+                else if((remarks & underLand) != 0) Hints |= ShapeHint.LandUnder;
+                else if((remarks & aboveLand) != 0) Hints |= ShapeHint.LandAbove;
+                else if((remarks & keepLand) != 0) Hints |= ShapeHint.LandKeep;
 
-                if ((remarks & decal) != 0) Hints |= PointHint.DecalNormal;
-                else if ((remarks & verticalDecal) != 0) Hints |= PointHint.DecalVertical;
+                if ((remarks & decal) != 0) Hints |= ShapeHint.DecalNormal;
+                else if ((remarks & verticalDecal) != 0) Hints |= ShapeHint.DecalVertical;
 
-                if ((remarks & noLight) != 0)  Hints |= PointHint.ShineLightHints;
-                else if ((remarks & fullLight) != 0)  Hints |= PointHint.FullLightHints;
-                else if ((remarks & halfLight) != 0)  Hints |= PointHint.HalfLightHints;
-                else if ((remarks & ambientLight) != 0)  Hints |= PointHint.AmbientLightHints;
+                if ((remarks & noLight) != 0)  Hints |= ShapeHint.ShineLightHints;
+                else if ((remarks & fullLight) != 0)  Hints |= ShapeHint.FullLightHints;
+                else if ((remarks & halfLight) != 0)  Hints |= ShapeHint.HalfLightHints;
+                else if ((remarks & ambientLight) != 0)  Hints |= ShapeHint.AmbientLightHints;
 
-                if ((remarks & noFog) != 0)  Hints |= PointHint.FogDisable;
-                else if ((remarks & skyFog) != 0)  Hints |= PointHint.FogSky;
+                if ((remarks & noFog) != 0)  Hints |= ShapeHint.FogDisable;
+                else if ((remarks & skyFog) != 0)  Hints |= ShapeHint.FogSky;
 
                 if ((remarks & userMask) != 0)
                 {
                     var user = (remarks & userMask) / userStep;
                     var userHint = user * userStep;
-                    Hints |= (PointHint)userHint;
+                    Hints |= (ShapeHint)userHint;
                 }
 
                 if ((remarks & hiddenSpecial) != 0) Hidden = true;

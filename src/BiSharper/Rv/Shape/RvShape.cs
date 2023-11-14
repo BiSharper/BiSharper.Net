@@ -6,7 +6,7 @@ namespace BiSharper.Rv.Shape;
 
 public class RvShape
 {
-    private ShapeRemark _remark = 0;
+    private int _remark = 0;
     private float _mass = 0;
     private List<float> _massArray = new List<float>();
     private float _inverseMass;
@@ -16,10 +16,9 @@ public class RvShape
     private BTripointMatrix3 _inertia;
 
 
-    public RvShape(BinaryReader reader, string name, bool reversed)
+    public RvShape(BinaryReader reader, string name)
     {
         var start = reader.BaseStream.Position;
-        if (reversed) _remark |= ShapeRemark.Reversed;
         
         int lodCount = 1, version = 0;
         var tagged = false;
