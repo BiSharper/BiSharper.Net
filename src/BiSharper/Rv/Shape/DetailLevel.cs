@@ -1,5 +1,6 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
+using System.Text;
+using BiSharper.Rv.Shape.Flags;
 using BiSharper.Rv.Shape.Types;
 using BiSharper.Rv.Shape.Utils;
 
@@ -14,15 +15,16 @@ public readonly struct DetailLevel
     public Vector2 InverseXY { get; private init; }
     public Vector2 MaximumXY { get; private init; }
     public Vector2 MinimumXY { get; private init; }
+    public Dictionary<string, string> Properties { get; private init; } = new Dictionary<string, string>();
     public int MinimumMaterial { get; private init; }
     
-    public DetailLevel(BinaryReader reader, RvShape parent)
+    public DetailLevel(BinaryReader reader, int shapeVersion, RvShape parent)
     {
         Shape = parent;
         
         var signature = reader.ReadBytes(4);
         var headSize = reader.ReadInt32();
-        var version = reader.ReadInt32();
+        var lodVersion = reader.ReadInt32();
         var pointCount = reader.ReadInt32();
         var normalCount = reader.ReadInt32();
         var faceCount = reader.ReadInt32();
@@ -34,9 +36,9 @@ public readonly struct DetailLevel
             extended = true;
             material = true;
 
-            if (version != 0x100 && signature[0] == 'P')
+            if (lodVersion != 0x100 && signature[0] == 'P')
             {
-                throw new NotSupportedException($"Unsupported P3DM version {version}.");
+                throw new NotSupportedException($"Unsupported P3DM version {lodVersion}.");
             }
 
             reader.BaseStream.Seek(headSize - 28, SeekOrigin.Current);
@@ -45,8 +47,8 @@ public readonly struct DetailLevel
             //Our variables are all out of wack in accordance to this format - lets fix that.
             pointCount = headSize;
             headSize = 16;
-            normalCount = version;
-            version = 0;
+            normalCount = lodVersion;
+            lodVersion = 0;
             faceCount = pointCount;
             flags = 0;
         }
@@ -56,7 +58,7 @@ public readonly struct DetailLevel
         Faces = ShapeFace.ReadMulti(reader, extended, material, this, faceCount);
         {
             const double minIntervalSize = 1e-6;
-            Vector2 minXY = new Vector2(float.MaxValue), maxXY = new Vector2(float.MinValue);
+            Vector2 minXY = new(float.MaxValue), maxXY = new(float.MinValue);
             var minMaterial = int.MaxValue;
             foreach (var face in Faces)
             {
@@ -82,15 +84,7 @@ public readonly struct DetailLevel
                     minXY[i] = 0;
                     maxXY[i] = 1;
                 }
-            }
-            
-            Debug.Assert(Math.Abs(maxXY.X - -1e6) > float.Epsilon);
-            Debug.Assert(Math.Abs(maxXY.Y - -1e6) > float.Epsilon);
-            Debug.Assert(Math.Abs(minXY.X - 1e6) > float.Epsilon);
-            Debug.Assert(Math.Abs(minXY.Y - 1e6) > float.Epsilon);
-            
-            for (var i = 0; i < 2; i++)
-            {
+                
                 if (maxXY[i] - minXY[i] < minIntervalSize)
                 {
                     var input = (float)(minXY[i] + minIntervalSize);
@@ -99,7 +93,7 @@ public readonly struct DetailLevel
 
                         if ((bitsRepresentation & 0x7F800000) == 0x7F800000)
                         {
-                            if (bitsRepresentation != 0xFF800000) input = input + input;  // -inf is handled normally
+                            if (bitsRepresentation != 0xFF800000) input += input; 
                         }
                         else if (bitsRepresentation == 0x80000000)
                         {
@@ -120,7 +114,78 @@ public readonly struct DetailLevel
                 }
             }
 
-            InverseXY = new Vector2(1 / maxXY.X - minXY.X, 1 / maxXY.Y - minXY.Y);
+            MinimumXY = minXY;
+            MaximumXY = maxXY;
+            InverseXY = new Vector2(1 / MaximumXY[0] - MinimumXY[0], 1 / MaximumXY[1] - MinimumXY[1]);
         }
+        
+        if (reader.ReadBytes(4) != "TAGG"u8)
+        {
+            throw new Exception("Error encountered while finishing up LOD.");
+        }
+
+        TaggType tagg;
+        while ((tagg = ReadingUtilities.ReadTag(reader, out var taggText, out var tagLength)) != TaggType.EndOfFile)
+        {
+            if(tagg == TaggType.EndOfFile) break;
+            switch (tagg)
+            {
+                case TaggType.Mass:
+                {
+                    if (shapeVersion == 0)
+                    {
+                        //Warn:: "%s: Old mass no longer supported"
+                        goto default;
+                    }
+                    
+                    //TODO Mass calculations
+                    reader.BaseStream.Seek(tagLength, SeekOrigin.Current);
+
+                    break;
+                }
+                case TaggType.Animation:
+                    //TODO Animation phases
+                    reader.BaseStream.Seek(tagLength, SeekOrigin.Current);
+                    break;
+                case TaggType.UVSet:
+                {
+                    var stageId = reader.ReadInt32();
+                    var bytesRead = 4;
+                    if (stageId > 1)
+                    {
+                        //Warn:: "Warning: Unsupported UVSet {stageId}"
+                    }
+
+                    if (stageId != 1)
+                    {
+                        goto default;
+                    }
+                    //TODO UVSet Stage 1
+                    break;
+                }
+                case TaggType.Property:
+                {
+                    var name = Encoding.ASCII.GetString(reader.ReadBytes(64)).TrimEnd(char.MinValue);
+                    var value = Encoding.ASCII.GetString(reader.ReadBytes(64)).TrimEnd(char.MinValue);
+                    Properties[name] = value;
+                    break;
+                }
+                case TaggType.MaterialIndex:
+                    Properties["__ambient"] = reader.ReadInt32().ToString("x8");
+                    Properties["__diffuse"] = reader.ReadInt32().ToString("x8");
+                    Properties["__specular"] = reader.ReadInt32().ToString("x8");
+                    Properties["__emissive"] = reader.ReadInt32().ToString("x8");
+                    break;
+                case TaggType.NamedSelection:
+                    break;
+                case TaggType.Unknown:
+                default:
+                {
+                    reader.BaseStream.Seek(tagLength, SeekOrigin.Current);
+                    break;
+                }
+            }
+        }
+        
     }
 }

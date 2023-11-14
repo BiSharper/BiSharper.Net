@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Text;
 using BiSharper.Common.IO;
 using BiSharper.Rv.Shape.Flags;
@@ -64,6 +65,7 @@ public readonly struct ShapeFace
     }
 
     [Flags]
+    [SuppressMessage("ReSharper", "UnusedMember.Local")]
     private enum FaceRemarks : uint
     {
         SunPrecalculated = 1,
@@ -111,6 +113,8 @@ public readonly struct ShapeFace
 
     public ShapeFace(BinaryReader reader, bool extended, bool material, DetailLevel parent)
     {
+        // ReSharper disable UnusedVariable
+
         const uint noLight = 0x1, ambientLight = 0x2, fullLight = 0x4, biSidedLight = 0x20, skyLight = 0x80,
             reverseLight = 0x100000, flatLight = 0x200000, lightMask = 0x3000a7;
         const uint shadow = 0x8, noShadow = 0x10, shadowMask = 0x18,
@@ -120,6 +124,8 @@ public readonly struct ShapeFace
         const uint all = noLight | ambientLight | fullLight | biSidedLight | skyLight | reverseLight |
                          flatLight | shadow | noShadow | disableTexMerge | userMask | zBiasMask |
                          colorizeMask | fanStripMask;
+        // ReSharper restore UnusedVariable
+
         LOD = parent;
         Hints = 0;
         uint hint;
@@ -166,7 +172,6 @@ public readonly struct ShapeFace
             }
         }
         
-        var minMaterial = int.MaxValue;//TODO: shape might have to own this as a property/field
         var skipPoly = true;
         foreach (var vertex in Vertices)
         {
@@ -224,7 +229,6 @@ public readonly struct ShapeFace
 
             var landFlags = pointFlags & ShapeHint.LandMask;
             if (landFlags == ShapeHint.LandOn) Spec |= (uint)(FaceRemarks.OnSurface | FaceRemarks.NoZWrite);
-            
         }
         
         
