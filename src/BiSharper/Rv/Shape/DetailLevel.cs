@@ -6,12 +6,12 @@ namespace BiSharper.Rv.Shape;
 
 public readonly struct DetailLevel
 {
-    public LODShape Shape { get; private init; }
+    public RvShape Shape { get; private init; }
     public ShapeFace[] Faces { get; private init; }
     public Vector3[] Normals { get; private init; }
     public ShapePoint[] Points { get; private init; }
     
-    public DetailLevel(BinaryReader reader, LODShape parent)
+    public DetailLevel(BinaryReader reader, RvShape parent)
     {
         Shape = parent;
         
@@ -49,10 +49,6 @@ public readonly struct DetailLevel
         Points = ShapePoint.ReadMulti(reader, extended, this, pointCount);
         Normals = reader.ReadMultipleVector3(normalCount);
         Faces = ShapeFace.ReadMulti(reader, extended, material, this, faceCount);
-
-
-
-
     }
     
 }

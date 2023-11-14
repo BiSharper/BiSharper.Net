@@ -4,7 +4,7 @@ using BiSharper.Rv.Shape.Flags;
 
 namespace BiSharper.Rv.Shape;
 
-public class LODShape
+public class RvShape
 {
     private ShapeRemark _remark = 0;
     private float _mass = 0;
@@ -16,7 +16,7 @@ public class LODShape
     private BTripointMatrix3 _inertia;
 
 
-    public LODShape(BinaryReader reader, string name, bool reversed)
+    public RvShape(BinaryReader reader, string name, bool reversed)
     {
         var start = reader.BaseStream.Position;
         if (reversed) _remark |= ShapeRemark.Reversed;

@@ -17,16 +17,31 @@ public readonly struct ShapeFace
         public ShapeFace Face { get; private init; }
         public int PointIndex { get; private init; }
         public int NormalIndex { get; private init; }
-        public int X { get; private init; }
-        public int Y { get; private init; }
+        public float X { get; private init; }
+        public float Y { get; private init; }
 
         public Vertex(BinaryReader reader, ShapeFace face)
         {
+            const float xyLimit = 100.0f;
             Face = face;
             PointIndex = reader.ReadInt32();
             NormalIndex = reader.ReadInt32();
-            X = reader.ReadInt32();
-            Y = reader.ReadInt32();
+            float x = reader.ReadSingle(), y = reader.ReadSingle();
+            float absX = Math.Abs(x), absY = Math.Abs(y);
+            if (absX >= 1e5 || absY >= 1e5 || !float.IsFinite(absX) || !float.IsFinite(absY))
+            {
+                //Warn:: "Face %d, point %d, face points %d,%d,%d - invalid uv %g,%g"
+                x = y = 0;
+            }
+
+            
+            if (absX > xyLimit || absY > xyLimit)
+            {
+                //Warn::  "UV coordinate on point %d is too big UV(%f, %f) - the UV compression may produce inaccurate results"
+            }
+
+            X = x;
+            Y = y;
         }
 
         public static Vertex[] ReadMulti(BinaryReader reader, ShapeFace face, int count)
