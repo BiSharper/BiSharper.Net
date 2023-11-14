@@ -5,7 +5,6 @@ namespace BiSharper.Rv.VFS.Model;
 public interface IRvEntryHolder
 {
     public ConcurrentBag<IRvEntry> Entries { get; }
-    
 
     public T? GetEntry<T>(string name) where T : class, IRvEntry => 
         Entries.OfType<T>().FirstOrDefault(s => s.Name == name);
@@ -20,12 +19,7 @@ public static class RvEntryHolderExtensions
         if (!name.Contains('\\'))
         {
             if (GetDirectory(holder, name) is { } dir) return dir;
-            dir = new RvDirectory
-            {
-                Name = name,
-                ParentContext = holder,
-                Entries = new ConcurrentBag<IRvEntry>()
-            };
+            dir = new RvDirectory(name, holder);
             holder.Entries.Add(dir);
             return dir;
         }

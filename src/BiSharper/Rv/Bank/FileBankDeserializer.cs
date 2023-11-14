@@ -93,20 +93,25 @@ public partial class FileBank
     {
         path = PathNormalizationRegex().Replace(path, @"\").ToLower().TrimStart(PboDirSeparator).TrimEnd(PboDirSeparator);
     }
+
+    private static (string, BankEntry) ReadEntry(Stream input, FileBank owner)
+    {
+        var entryName = ReadEntryName(input);
+        return (
+            entryName,
+            new BankEntry
+            {
+                Name = entryName,
+                Mime = (EntryMime)TakeInt(input),
+                Length = (uint)TakeInt(input),
+                Offset = (long)(ulong)TakeInt(input),
+                Timestamp = (uint)TakeInt(input),
+                BufferLength = (uint)TakeInt(input),
+                Owner = owner
+            }
+        );
+    }
     
-    private static (string, BankEntry) ReadEntry(Stream input, FileBank owner) => 
-    (
-        ReadEntryName(input),
-        new BankEntry
-        {
-            Mime = (EntryMime)TakeInt(input),
-            Length = (uint)TakeInt(input),
-            Offset = (long)(ulong)TakeInt(input),
-            Timestamp = (uint)TakeInt(input),
-            BufferLength = (uint)TakeInt(input),
-            Owner = owner
-        }
-    );
 
     private const int IntBufferSize = sizeof(int);
     private static int TakeInt(Stream input)

@@ -39,9 +39,9 @@ public partial class FileBank
         }
     }
     
-    public async Task<byte[]?> ReadRawAsync(string name, CancellationToken cancellationToken = default) => GetMetadata(name) is not { } meta ? null : await ReadRawAsync(meta, cancellationToken);
+    public async Task<byte[]?> ReadRawAsync(string name, CancellationToken cancellationToken = default) => GetEntry(name) is not { } meta ? null : await ReadRawAsync(meta, cancellationToken);
     
-    public async Task<byte[]?> ReadAsync(string name, CancellationToken cancellationToken = default) => GetMetadata(name) is not { } meta ? null : await ReadAsync(meta, cancellationToken);
+    public async Task<byte[]?> ReadAsync(string name, CancellationToken cancellationToken = default) => GetEntry(name) is not { } meta ? null : await ReadAsync(meta, cancellationToken);
     
     public async Task<byte[]?> ReadAsync(BankEntry meta, CancellationToken cancellationToken = default)
     {

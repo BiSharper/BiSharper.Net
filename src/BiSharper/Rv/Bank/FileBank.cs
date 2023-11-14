@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using BiSharper.Common.IO.Compression;
 using BiSharper.Rv.Bank.Models;
 
@@ -13,7 +14,7 @@ public partial class FileBank
     private readonly ConcurrentDictionary<string, string> _properties = new();
     private readonly ConcurrentDictionary<string, BankEntry> _dataEntries = new();
     public IEnumerable<KeyValuePair<string, string>> Properties => _properties;
-    public IEnumerable<KeyValuePair<string, BankEntry>> DataEntries => _dataEntries;
+    public IEnumerable<BankEntry> DataEntries => _dataEntries.Values;
 
     public string DefaultPrefix { get; }
     
@@ -23,11 +24,12 @@ public partial class FileBank
 
     public bool HasProperty(string name) => _properties.ContainsKey(name);
 
-    public bool HasEntry(string name) => _dataEntries.ContainsKey(name);
+    public bool HasEntry(string name) =>
+        _dataEntries.ContainsKey(name);
 
-    public BankEntry? GetMetadata(string name) => _dataEntries.GetValueOrDefault(name);
+    public BankEntry? GetEntry(string name) => _dataEntries[name];
     
-    public byte[]? ReadRaw(string name) => GetMetadata(name) is not { } meta ? null : ReadRaw(meta);
+    public byte[]? ReadRaw(string name) => GetEntry(name) is not { } meta ? null : ReadRaw(meta);
     
     public byte[]? ReadRaw(BankEntry meta)
     {
@@ -65,7 +67,7 @@ public partial class FileBank
         }
     }
     
-    public byte[]? Read(string name) => GetMetadata(name) is not { } meta ? null : Read(meta);
+    public byte[]? Read(string name) => GetEntry(name) is not { } meta ? null : Read(meta);
     
     public byte[]? Read(BankEntry meta)
     {

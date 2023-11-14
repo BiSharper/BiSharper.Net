@@ -3,7 +3,7 @@
 
 public class RvFile : IRvEntry
 {
-    public string Name { get; }
+    public string Name { get; init; }
     public required IRvEntryHolder ParentContext { get; init;  }
 
     public readonly Stream FileData;

@@ -8,8 +8,15 @@ public interface IRvDirectory : IRvEntry, IRvEntryHolder
 
 public sealed class RvDirectory : IRvDirectory
 {
-    public required string Name { get; init; }
-    public required IRvEntryHolder ParentContext { get; init;  }
-    public required ConcurrentBag<IRvEntry> Entries { get; init; } = new();
+    public string Name { get; init; }
+    public IRvEntryHolder ParentContext { get; }
+    public ConcurrentBag<IRvEntry> Entries { get; } = new();
+
+    public RvDirectory(string name, IRvEntryHolder parent)
+    {
+        Name = name;
+        ParentContext = parent;
+    }
+
 
 }
