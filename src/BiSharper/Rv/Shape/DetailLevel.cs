@@ -6,19 +6,20 @@ using BiSharper.Rv.Shape.Utils;
 
 namespace BiSharper.Rv.Shape;
 
-public readonly struct DetailLevel
+public class DetailLevel
 {
     public RvShape Shape { get; private init; }
     public ShapeFace[] Faces { get; private init; }
     public Vector3[] Normals { get; private init; }
     public ShapePoint[] Points { get; private init; }
-    public Vector2 InverseXY { get; private init; }
-    public Vector2 MaximumXY { get; private init; }
-    public Vector2 MinimumXY { get; private init; }
+    public Vector2 InverseXY { get; private set; }
+    public Vector2 MaximumXY { get; private set; }
+    public Vector2 MinimumXY { get; private set; }
+    public float Resolution { get; private init; }
     public Dictionary<string, string> Properties { get; private init; } = new Dictionary<string, string>();
-    public int MinimumMaterial { get; private init; }
-    
-    public DetailLevel(BinaryReader reader, int shapeVersion, RvShape parent)
+    public int MinimumMaterial => Faces.Min(f => f.MinimumMaterial); 
+
+    public DetailLevel(BinaryReader reader, int shapeVersion, List<float> massArray, RvShape parent)
     {
         Shape = parent;
         
@@ -56,68 +57,7 @@ public readonly struct DetailLevel
         Points = ShapePoint.ReadMulti(reader, extended, this, pointCount);
         Normals = reader.ReadMultipleVector3(normalCount);
         Faces = ShapeFace.ReadMulti(reader, extended, material, this, faceCount);
-        {
-            const double minIntervalSize = 1e-6;
-            Vector2 minXY = new(float.MaxValue), maxXY = new(float.MinValue);
-            var minMaterial = int.MaxValue;
-            foreach (var face in Faces)
-            {
-                if (minMaterial > face.MinimumMaterial) minMaterial = face.MinimumMaterial;
-                foreach (var vertex in face.Vertices)
-                {
-                    if (vertex.X > maxXY.X) maxXY.X = vertex.X;
-                    if (vertex.Y > maxXY.Y) maxXY.Y = vertex.Y;
-                    if (vertex.X > minXY.X) minXY.X = vertex.X;
-                    if (vertex.Y > minXY.Y) minXY.Y = vertex.Y;
-                }
-            }
-            
-            if ((MinimumMaterial = minMaterial) != 0)
-            {
-                //Warn:: "Old style material flags used - %d (with texture %s)"
-            }
-
-            for (var i = 0; i < 2; i++)
-            {
-                if (minXY[i] > maxXY[i])
-                {
-                    minXY[i] = 0;
-                    maxXY[i] = 1;
-                }
-                
-                if (maxXY[i] - minXY[i] < minIntervalSize)
-                {
-                    var input = (float)(minXY[i] + minIntervalSize);
-                    {
-                        var bitsRepresentation = BitConverter.ToUInt32(BitConverter.GetBytes(input), 0);
-
-                        if ((bitsRepresentation & 0x7F800000) == 0x7F800000)
-                        {
-                            if (bitsRepresentation != 0xFF800000) input += input; 
-                        }
-                        else if (bitsRepresentation == 0x80000000)
-                        {
-                            input = 1.401298464e-45f;
-                        }
-                        else
-                        {
-                            if ((bitsRepresentation & 0x80000000) == 0)
-                            {
-                                bitsRepresentation++;
-                            } else bitsRepresentation--;
-                            input = BitConverter.ToSingle(BitConverter.GetBytes(bitsRepresentation), 0);
-                        }
-                    }
-                    
-                    
-                    maxXY[i] = input;
-                }
-            }
-
-            MinimumXY = minXY;
-            MaximumXY = maxXY;
-            InverseXY = new Vector2(1 / MaximumXY[0] - MinimumXY[0], 1 / MaximumXY[1] - MinimumXY[1]);
-        }
+        CalculateMinMaxes();
         
         if (reader.ReadBytes(4) != "TAGG"u8)
         {
@@ -186,6 +126,70 @@ public readonly struct DetailLevel
                 }
             }
         }
+
+        Resolution = reader.ReadSingle();
+    }
+
+    private void CalculateMinMaxes()
+    {
+        const double minIntervalSize = 1e-6;
+        Vector2 minXY = new(float.MaxValue), maxXY = new(float.MinValue);
         
+        foreach (var face in Faces)
+        {
+            foreach (var vertex in face.Vertices)
+            {
+                if (vertex.X > maxXY.X) maxXY.X = vertex.X;
+                if (vertex.Y > maxXY.Y) maxXY.Y = vertex.Y;
+                if (vertex.X > minXY.X) minXY.X = vertex.X;
+                if (vertex.Y > minXY.Y) minXY.Y = vertex.Y;
+            }
+        }
+        
+
+        if (MinimumMaterial != 0)
+        {
+            //Warn:: "Old style material flags used - %d (with texture %s)"
+        }
+
+        for (var i = 0; i < 2; i++)
+        {
+            if (minXY[i] > maxXY[i])
+            {
+                minXY[i] = 0;
+                maxXY[i] = 1;
+            }
+
+            if (maxXY[i] - minXY[i] < minIntervalSize)
+            {
+                var input = (float)(minXY[i] + minIntervalSize);
+                {
+                    var bitsRepresentation = BitConverter.ToUInt32(BitConverter.GetBytes(input), 0);
+
+                    if ((bitsRepresentation & 0x7F800000) == 0x7F800000)
+                    {
+                        if (bitsRepresentation != 0xFF800000) input += input;
+                    }
+                    else if (bitsRepresentation == 0x80000000)
+                    {
+                        input = 1.401298464e-45f;
+                    }
+                    else
+                    {
+                        if ((bitsRepresentation & 0x80000000) == 0)
+                            bitsRepresentation++;
+                        else bitsRepresentation--;
+                        input = BitConverter.ToSingle(BitConverter.GetBytes(bitsRepresentation), 0);
+                    }
+                }
+
+
+                maxXY[i] = input;
+            }
+        }
+
+        MinimumXY = minXY;
+        MaximumXY = maxXY;
+        InverseXY = new Vector2(1 / MaximumXY[0] - MinimumXY[0], 1 / MaximumXY[1] - MinimumXY[1]);
     }
 }

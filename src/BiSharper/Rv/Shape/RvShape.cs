@@ -6,32 +6,33 @@ namespace BiSharper.Rv.Shape;
 
 public class RvShape
 {
-    private int _remark = 0;
-    private float _mass = 0;
-    private List<float> _massArray = new List<float>();
-    private float _inverseMass;
-    private DetailLevel[] _levelsOfDetail; 
-    private Vector3 _centerOfMass;
-    private BTripointMatrix3 _inverseInertia;
-    private BTripointMatrix3 _inertia;
+    public List<float> MassArray { get; private set; }
+    public DetailLevel[] DetailLevels { get; private set; }
+    public Vector3 CenterOfMass { get; private set; }
+    public float Mass { get; private set; }
+    public float InverseMass { get; private set; }
+    public BTripointMatrix3 Inertia { get; private set; }
+    public BTripointMatrix3 InverseInertia { get; private set; }
+
 
 
     public RvShape(BinaryReader reader, string name)
     {
         var start = reader.BaseStream.Position;
         
-        int lodCount = 1, version = 0;
+        int lodCount = 1, shapeVersion = 0;
         var tagged = false;
-        _inverseMass = 1e10f;
-        _inverseInertia = new BTripointMatrix3();
-        _inverseInertia = new BTripointMatrix3();
-        _centerOfMass = new Vector3();
+        InverseMass = 1e10f;
+        InverseInertia = new BTripointMatrix3();
+        InverseInertia = new BTripointMatrix3();
+        CenterOfMass = new Vector3();
+        MassArray = new List<float>();
 
         var signature = reader.ReadBytes(4);
         if (signature == "MLOD"u8)
         {
             tagged = true;
-            version = reader.ReadInt32();
+            shapeVersion = reader.ReadInt32();
             lodCount = reader.ReadInt32();
         } else if (signature == "NLOD"u8)
         {
@@ -42,21 +43,38 @@ public class RvShape
             //TODO
         }
 
-        int versionMajor = version >> 8, versionMinor = version & 0xff;
-        if (versionMajor > 1)
         {
-            throw new NotSupportedException($"Unsupported Shape Version {versionMajor}.{versionMinor}");
+            int versionMajor = shapeVersion >> 8, versionMinor = shapeVersion & 0xff;
+            if (versionMajor > 1)
+            {
+                throw new NotSupportedException($"Unsupported Shape Version {versionMajor}.{versionMinor}");
+            }
         }
 
         bool treeCrownNeeded = false, canBlend = false;
-        _levelsOfDetail = new DetailLevel[lodCount];
+        DetailLevels = new DetailLevel[lodCount];
         for (var i = 0; i < lodCount; i++)
         {
-            float resolution = 0;
             var shapeStart = reader.BaseStream.Position;
-            bool wasMassArray = _massArray.Count > 0;
+            var wasMassArray = MassArray.Count > 0;
+            var currentLod = DetailLevels[i] = new DetailLevel(reader, shapeVersion, MassArray, this);
+            if (currentLod.Resolution < 0) throw new Exception($"Fatal: Lod {i} has a resolution less than 0.");
             
+            //TODO geometry used
         }
 
+    }
+
+
+    public static GeometryUsed ResolveGeometryUsed(float resolution)
+    {
+        if (resolution <= 900)
+        {
+            return 0;
+        }
+        
+        bool InSpec(float spec) => Math.Abs(resolution - spec) < spec * 1e-3f;
+
+        throw new NotImplementedException();
     }
 }
