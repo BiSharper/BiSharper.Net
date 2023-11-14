@@ -10,6 +10,4 @@ public class ParamContext : IParamContextHolder
     public required ConcurrentDictionary<string, IParamValue> Parameters { get; init; } = new();
     public required ConcurrentDictionary<string, ParamContext> Contexts { get; init; }
     public required ConcurrentBag<IParamStatement> Statements { get; init; } = new();
-    
-
 }

@@ -11,7 +11,7 @@ public sealed class RvFilesystem : IRvEntryHolder
 
     public void LoadBank(FileBank bank)
     {
-        if (_contexts.Contains<>(bank))
+        if (_contexts.Contains(bank))
         {
             throw new Exception("Supplied bank already exists in the filesystem.");
         }
