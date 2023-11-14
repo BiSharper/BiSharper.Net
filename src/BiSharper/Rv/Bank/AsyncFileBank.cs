@@ -9,7 +9,6 @@ public partial class FileBank
     public async Task<byte[]?> ReadRawAsync(BankEntry meta, CancellationToken cancellationToken = default)
     {
         await _readLock.WaitAsync(cancellationToken);
-        var buffer = Array.Empty<byte>();
         try
         {
             if (meta.Offset > _binaryLength)
@@ -18,23 +17,16 @@ public partial class FileBank
             }
             if (meta.BufferLength == 0)
             {
-                return buffer;
+                return Array.Empty<byte>();
             }
             _input.Seek(meta.Offset, SeekOrigin.Begin);
             var bufferSize = (int)meta.BufferLength;
-            buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-            var memory = new Memory<byte>(buffer, 0, bufferSize);
-            var foundBytes = await _input.ReadAsync(memory, cancellationToken); // using asynchronous read
-            if (foundBytes != bufferSize)
-            {
-                throw new IOException($"Expected enough room for {bufferSize} (+4 for signed) bytes at position {_input.Position} but could only read {foundBytes}.");
-            }
-
-            return memory.Span[..bufferSize].ToArray();
+            using var ms = new MemoryStream(bufferSize);
+            await _input.CopyToAsync(ms, cancellationToken);
+            return ms.ToArray();
         }
         finally
         {
-            ArrayPool<byte>.Shared.Return(buffer);
             _readLock.Release();
         }
     }

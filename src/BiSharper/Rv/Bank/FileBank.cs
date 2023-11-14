@@ -34,35 +34,25 @@ public partial class FileBank
     public byte[]? ReadRaw(BankEntry meta)
     {
         _readLock.Wait();
-        var buffer = Array.Empty<byte>();
         try
         {
             if (meta.Offset > _binaryLength)
             {
                 return null;
             }
-
             if (meta.BufferLength == 0)
             {
-                return buffer;
+                return Array.Empty<byte>();
             }
-            
+
             _input.Seek(meta.Offset, SeekOrigin.Begin);
             var bufferSize = (int)meta.BufferLength;
-            buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-            var memory = new Memory<byte>(buffer, 0, bufferSize);
-            var foundBytes = _input.Read(buffer);
-            if (foundBytes != bufferSize)
-            {
-                throw new IOException($"Expected enough room for {bufferSize} (+4 for signed) bytes at position {_input.Position} but could only read {foundBytes}.");
-            }
-            var result = new byte[bufferSize];
-            memory.Span[..bufferSize].CopyTo(result);
-            return result;
+            using var ms = new MemoryStream(bufferSize);
+            _input.CopyTo(ms);
+            return ms.ToArray();
         }
         finally
         {
-            ArrayPool<byte>.Shared.Return(buffer);
             _readLock.Release();
         }
     }

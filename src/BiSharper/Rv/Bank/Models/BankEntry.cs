@@ -18,7 +18,6 @@ public sealed record BankEntry
     public byte[]? Read() => Owner.Read(this);
     
     public byte[]? ReadRaw() => Owner.ReadRaw(this);
-
     
     public async Task<byte[]?> ReadAsync(CancellationToken cancellationToken = default) => 
         await Owner.ReadAsync(this, cancellationToken).ConfigureAwait(false);
