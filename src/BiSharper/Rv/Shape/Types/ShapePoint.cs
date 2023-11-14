@@ -20,6 +20,15 @@ public readonly struct ShapePoint
 
     public ShapePoint(BinaryReader reader, bool extended, DetailLevel parent)
     {
+        const uint onLand = 0x1, underLand = 0x2, aboveLand = 0x4, keepLand = 0x8/*, landMask = 0xf*/;
+        const uint decal = 0x100, verticalDecal = 0x200/*, decalMask = 0x300*/;
+        const uint noLight = 0x10, ambientLight = 0x20, fullLight = 0x40, halfLight = 0x80/*, lightMask = 0xf0*/;
+        const uint noFog = 0x1000, skyFog = 0x2000/*, fogMask = 0x3000*/;
+        const uint userMask = 0xff0000, userStep = 0x010000;
+        const uint specialMask = 0xf000000, hiddenSpecial = 0x1000000;
+        const uint all = onLand | underLand | aboveLand | keepLand | decal | verticalDecal | noLight | fullLight |
+                         halfLight | ambientLight | noFog | skyFog | userMask | specialMask;
+        
         LOD = parent;
         X = reader.ReadSingle();
         Y = reader.ReadSingle();
@@ -28,37 +37,38 @@ public readonly struct ShapePoint
         Hidden = false;
         if (extended)
         {
-            var remarks = (PointRemark)reader.ReadInt32();
-            if ((remarks & ~PointRemark.All) != 0)
+
+            var remarks = reader.ReadInt32();
+            if ((remarks & ~all) != 0)
             {
                 //Warn invalid flags
             }
             else
             {
-                if ((remarks & PointRemark.OnLand) != 0) Hints |= PointHint.LandOn;
-                else if((remarks & PointRemark.UnderLand) != 0) Hints |= PointHint.LandUnder;
-                else if((remarks & PointRemark.AboveLand) != 0) Hints |= PointHint.LandAbove;
-                else if((remarks & PointRemark.KeepLand) != 0) Hints |= PointHint.LandKeep;
+                if ((remarks & onLand) != 0) Hints |= PointHint.LandOn;
+                else if((remarks & underLand) != 0) Hints |= PointHint.LandUnder;
+                else if((remarks & aboveLand) != 0) Hints |= PointHint.LandAbove;
+                else if((remarks & keepLand) != 0) Hints |= PointHint.LandKeep;
 
-                if ((remarks & PointRemark.Decal) != 0) Hints |= PointHint.DecalNormal;
-                else if ((remarks & PointRemark.VerticalDecal) != 0) Hints |= PointHint.DecalVertical;
+                if ((remarks & decal) != 0) Hints |= PointHint.DecalNormal;
+                else if ((remarks & verticalDecal) != 0) Hints |= PointHint.DecalVertical;
 
-                if ((remarks & PointRemark.NoLight) != 0)  Hints |= PointHint.ShineLightHints;
-                else if ((remarks & PointRemark.FullLight) != 0)  Hints |= PointHint.FullLightHints;
-                else if ((remarks & PointRemark.HalfLight) != 0)  Hints |= PointHint.HalfLightHints;
-                else if ((remarks & PointRemark.AmbientLight) != 0)  Hints |= PointHint.AmbientLightHints;
+                if ((remarks & noLight) != 0)  Hints |= PointHint.ShineLightHints;
+                else if ((remarks & fullLight) != 0)  Hints |= PointHint.FullLightHints;
+                else if ((remarks & halfLight) != 0)  Hints |= PointHint.HalfLightHints;
+                else if ((remarks & ambientLight) != 0)  Hints |= PointHint.AmbientLightHints;
 
-                if ((remarks & PointRemark.NoFog) != 0)  Hints |= PointHint.FogDisable;
-                else if ((remarks & PointRemark.SkyFog) != 0)  Hints |= PointHint.FogSky;
+                if ((remarks & noFog) != 0)  Hints |= PointHint.FogDisable;
+                else if ((remarks & skyFog) != 0)  Hints |= PointHint.FogSky;
 
-                if ((remarks & PointRemark.UserMask) != 0)
+                if ((remarks & userMask) != 0)
                 {
-                    var user = (int) (remarks & PointRemark.UserMask) / (int)PointRemark.UserStep;
-                    var userHint = user * (int)PointRemark.UserStep;
-                    Hints |= (PointHint) userHint;
+                    var user = (remarks & userMask) / userStep;
+                    var userHint = user * userStep;
+                    Hints |= (PointHint)userHint;
                 }
 
-                if ((remarks & PointRemark.HiddenSpecial) != 0) Hidden = true;
+                if ((remarks & hiddenSpecial) != 0) Hidden = true;
             }
         }
     }
