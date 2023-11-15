@@ -4,3 +4,6 @@
 [submodule "src/library/BiSharper.ApplicationFramework"]
 	path = src/library/BiSharper.ApplicationFramework
 	url = https://github.com/BiSharper/BiSharper.ApplicationFramework
+[submodule "extras/BiSharper.Installer"]
+	path = extras/BiSharper.Installer
+	url = https://github.com/BiSharper/BiSharper.Installer

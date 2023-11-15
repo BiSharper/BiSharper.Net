@@ -9,6 +9,7 @@
         <PublishAot>true</PublishAot>
         <WarningsAsErrors>Nullable</WarningsAsErrors>
         <RootNamespace>BiSharper.Application</RootNamespace>
+        <Version>0.1.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
