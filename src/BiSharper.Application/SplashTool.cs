@@ -1,6 +1,6 @@
 ﻿using BiSharper.Application.Cli;
 using BiSharper.Application.Tui;
-using BiSharper.Interoperability;
+using BiSharper.ApplicationFramework;
 using Terminal.Gui;
 
 namespace BiSharper.Application;

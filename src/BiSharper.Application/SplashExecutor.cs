@@ -1,4 +1,4 @@
-﻿using BiSharper.Interoperability;
+﻿using BiSharper.ApplicationFramework;
 
 namespace BiSharper.Application;
 

@@ -8,10 +8,11 @@
         <IsAotCompatible>true</IsAotCompatible>
         <PublishAot>true</PublishAot>
         <WarningsAsErrors>Nullable</WarningsAsErrors>
+        <RootNamespace>BiSharper.Application</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\library\BiSharper.Interoperability\BiSharper.Interoperability.csproj" />
+      <ProjectReference Include="..\library\BiSharper.ApplicationFramework\src\BiSharper.ApplicationFramework\BiSharper.ApplicationFramework.csproj" />
       <ProjectReference Include="..\library\BiSharper\BiSharper.csproj" />
       <ProjectReference Include="..\modules\BankPeek\src\BankPeek\BankPeek.csproj" />
     </ItemGroup>

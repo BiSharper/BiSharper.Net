@@ -1,4 +1,4 @@
-﻿using BiSharper.Interoperability.Tui;
+﻿using BiSharper.ApplicationFramework.Tui;
 using Terminal.Gui;
 
 namespace BiSharper.Application.Tui;

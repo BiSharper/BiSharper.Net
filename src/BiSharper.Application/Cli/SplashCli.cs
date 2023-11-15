@@ -1,4 +1,4 @@
-﻿using BiSharper.Interoperability.Cli;
+﻿using BiSharper.ApplicationFramework.Cli;
 using Terminal.Gui;
 
 namespace BiSharper.Application.Cli;

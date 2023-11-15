@@ -1,3 +1,6 @@
 [submodule "src/modules/BankPeek"]
 	path = src/modules/BankPeek
 	url = https://github.com/BiSharper/BankPeek
+[submodule "src/library/BiSharper.ApplicationFramework"]
+	path = src/library/BiSharper.ApplicationFramework
+	url = https://github.com/BiSharper/BiSharper.ApplicationFramework
