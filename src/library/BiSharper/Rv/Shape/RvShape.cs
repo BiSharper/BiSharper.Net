@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using BiSharper.Common.Math;
 using BiSharper.Rv.Shape.Flags;
+using BiSharper.Rv.Shape.Utils;
 
 namespace BiSharper.Rv.Shape;
 
@@ -13,10 +14,10 @@ public class RvShape
     public float InverseMass { get; private set; }
     public BTripointMatrix3 Inertia { get; private set; }
     public BTripointMatrix3 InverseInertia { get; private set; }
+    
 
 
-
-    public RvShape(BinaryReader reader, string name)
+    public RvShape(BinaryReader reader, string name, bool reversed)
     {
         var start = reader.BaseStream.Position;
         
@@ -57,24 +58,18 @@ public class RvShape
         {
             var shapeStart = reader.BaseStream.Position;
             var wasMassArray = MassArray.Count > 0;
-            var currentLod = DetailLevels[i] = new DetailLevel(reader, shapeVersion, MassArray, this);
+            var currentLod = DetailLevels[i] = new DetailLevel(reader, shapeVersion, GeometryUsed.Default, reversed, MassArray, this);
             if (currentLod.Resolution < 0) throw new Exception($"Fatal: Lod {i} has a resolution less than 0.");
-            
-            //TODO geometry used
+
+            var geometry = SpecialLodType.ResolveGeometryUsed(currentLod.Resolution);
+            if (geometry != 0 && currentLod.Faces.Length > 0)
+            {
+                
+            } 
         }
 
     }
 
 
-    public static GeometryUsed ResolveGeometryUsed(float resolution)
-    {
-        if (resolution <= 900)
-        {
-            return 0;
-        }
-        
-        bool InSpec(float spec) => Math.Abs(resolution - spec) < spec * 1e-3f;
-
-        throw new NotImplementedException();
-    }
+    
 }

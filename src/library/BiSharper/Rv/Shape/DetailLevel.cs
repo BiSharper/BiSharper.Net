@@ -17,9 +17,17 @@ public class DetailLevel
     public Vector2 MinimumXY { get; private set; }
     public float Resolution { get; private init; }
     public Dictionary<string, string> Properties { get; private init; } = new Dictionary<string, string>();
-    public int MinimumMaterial => Faces.Min(f => f.MinimumMaterial); 
+    public int MinimumMaterial => Faces.Min(f => f.MinimumMaterial);
+    public int FaceCount => Faces.Length;
+    public int PointCount => Points.Length;
 
-    public DetailLevel(BinaryReader reader, int shapeVersion, List<float> massArray, RvShape parent)
+    public DetailLevel(
+        BinaryReader reader,
+        int shapeVersion,
+        GeometryUsed geometryUsed,
+        bool reversed,
+        List<float> massArray, 
+        RvShape parent)
     {
         Shape = parent;
         
@@ -56,7 +64,7 @@ public class DetailLevel
 
         Points = ShapePoint.ReadMulti(reader, extended, this, pointCount);
         Normals = reader.ReadMultipleVector3(normalCount);
-        Faces = ShapeFace.ReadMulti(reader, extended, material, this, faceCount);
+        Faces = ShapeFace.ReadMulti(reader, geometryUsed, extended, material, this, faceCount);
         CalculateMinMaxes();
         
         if (reader.ReadBytes(4) != "TAGG"u8)
@@ -191,5 +199,20 @@ public class DetailLevel
         MinimumXY = minXY;
         MaximumXY = maxXY;
         InverseXY = new Vector2(1 / MaximumXY[0] - MinimumXY[0], 1 / MaximumXY[1] - MinimumXY[1]);
+    }
+
+    private static Vector3[] ReadNormals(BinaryReader reader, int count, bool reversed, GeometryUsed geometryUsed)
+    {
+        var normals = reader.ReadMultipleVector3(count);
+        AlignGeometryUsedWithNormals(geometryUsed, normals);
+        return normals;
+    }
+
+    private static void AlignGeometryUsedWithNormals(GeometryUsed geometryUsed, Vector3[] normals)
+    {
+        if ((geometryUsed & GeometryUsed.NoNormals) != GeometryUsed.Default)
+        {
+            Array.Fill(normals, Vector3.UnitY);
+        }
     }
 }

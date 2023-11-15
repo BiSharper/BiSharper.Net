@@ -31,4 +31,5 @@ public static class ReadingUtilities
         if (taggText.Equals("#MaterialIndex#", StringComparison.OrdinalIgnoreCase)) return TaggType.MaterialIndex;
         return !taggText.StartsWith('#') ? TaggType.NamedSelection : TaggType.Unknown;
     }
+    
 }
