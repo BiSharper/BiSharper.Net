@@ -11,8 +11,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\BiSharper.Interoperability\BiSharper.Interoperability.csproj" />
-      <ProjectReference Include="..\BiSharper\BiSharper.csproj" />
+      <ProjectReference Include="..\library\BiSharper.Interoperability\BiSharper.Interoperability.csproj" />
+      <ProjectReference Include="..\library\BiSharper\BiSharper.csproj" />
       <ProjectReference Include="..\modules\BankPeek\src\BankPeek\BankPeek.csproj" />
     </ItemGroup>
 
