@@ -1,56 +1,26 @@
-﻿using Terminal.Gui;
+﻿using BiSharper.Interoperability.Cli;
+using BiSharper.Interoperability.Tui;
+using Terminal.Gui;
 
 namespace BiSharper.Interoperability;
 
-public abstract class BiSharperTool : IDisposable
+public abstract class BiSharperTool<TTui, TCli, TToolExecutor> : IDisposable 
+    where TCli : BiSharperCli<TToolExecutor>
+    where TTui : BiSharperTui<TToolExecutor>
+    where TToolExecutor : IBiToolExecutor
 {
+    protected readonly TToolExecutor ToolExecutor;
+    public string Name => ToolExecutor.ToolName;
+    public string Description => ToolExecutor.ToolDescription;
     private bool _disposed;
-    private readonly bool _closeApplication;
-    public Window? ToolWindow { get; protected set; }
-    public abstract string ToolName { get; }
-    public abstract string ToolDescription { get; }
 
-    protected BiSharperTool(bool closeApplication = false)
+    protected BiSharperTool(TToolExecutor executor)
     {
-        _closeApplication = closeApplication;
+        ToolExecutor = executor;
     }
     
-    public override string ToString() => $"{ToolName,-16} ({ToolDescription})";
-
-    public virtual void InitializeGui(ColorScheme? colorScheme)
-    {
-        Application.Init();
-
-        ToolWindow = new Window
-        {
-            Title = $"BiSharper: {ToolName}",
-            X = 0,
-            Y = 0,
-            Width = Dim.Fill(),
-            Height = Dim.Fill(),
-            ColorScheme = colorScheme
-        };
-
-        ToolWindow.Closed += OnToolWindowClosed;
-
-        Application.Top.Add(ToolWindow);
-    }
-
-    private void OnToolWindowClosed(object? sender, ToplevelEventArgs e)
-    {
-        Dispose(true);
-    }
-
-    public virtual void ExecuteHeadless(string[] arguments) => throw new NotSupportedException();
+    public override string ToString() => $"{Name,-16} ({Description})";
     
-    public virtual void RequestStop() => Application.RequestStop();
-
-    public virtual void Run() => Application.Run(Application.Top);
-
-    protected virtual void SetupGui()
-    {
-        
-    }
     
     protected virtual void ReleaseUnmanagedResources()
     {
@@ -58,7 +28,6 @@ public abstract class BiSharperTool : IDisposable
     
     protected virtual void ReleaseManagedResources()
     {
-        if(_closeApplication) Application.Shutdown();
     }
 
 

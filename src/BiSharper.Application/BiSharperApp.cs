@@ -1,10 +1,6 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿namespace BiSharper.Application;
 
-using System.Text;
-
-namespace BiSharper.Application;
-
-static class BiSharperApp
+internal static class BiSharperApp
 {
     public static SplashTool? SplashScreen;
 
