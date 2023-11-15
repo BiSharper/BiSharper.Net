@@ -3,13 +3,13 @@ using Terminal.Gui;
 
 namespace BiSharper.Application;
 
-public sealed class SplashWindow : BiSharperTool
+public sealed class SplashTool : BiSharperTool
 {
     
     public override string ToolName => "Tool Selector";
     public override string ToolDescription => "Used to select which tool you want to use in the toolset.";
     
-    public SplashWindow(string[] arguments, ColorScheme? colorScheme = null) : base(true)
+    public SplashTool(string[] arguments, ColorScheme? colorScheme = null) : base(true)
     {
         if (arguments.Length != 0 || arguments.Contains("-gui"))
         {

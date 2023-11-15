@@ -6,8 +6,7 @@ namespace BiSharper.Application;
 
 static class BiSharperApp
 {
-    static void Main(string[] args)
-    {
-        Console.OutputEncoding = Encoding.Default;
-    }
+    public static SplashTool? SplashScreen;
+
+    private static void Main(string[] args) => SplashScreen = new SplashTool(args);
 }
