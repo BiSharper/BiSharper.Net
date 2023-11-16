@@ -2,7 +2,6 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsAotCompatible>true</IsAotCompatible>
@@ -10,17 +9,14 @@
         <WarningsAsErrors>Nullable</WarningsAsErrors>
         <RootNamespace>BiSharper.Application</RootNamespace>
         <Version>0.1.0</Version>
+        <TargetFrameworks>net7.0;net7.0-windows;net8.0</TargetFrameworks>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\library\BiSharper.ApplicationFramework\src\BiSharper.ApplicationFramework\BiSharper.ApplicationFramework.csproj" />
       <ProjectReference Include="..\library\BiSharper\BiSharper.csproj" />
-      <ProjectReference Include="..\modules\BankPeek\src\BankPeek\BankPeek.csproj" />
+      <ProjectReference Include="..\modules\BankPeek\src\modules\BankPeek\src\BankPeek\BankPeek.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-      <PackageReference Include="Terminal.Gui" Version="2.0.0-pre.201" />
-    </ItemGroup>
-
-
+    
 </Project>
