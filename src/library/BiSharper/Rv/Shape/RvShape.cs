@@ -8,7 +8,7 @@ namespace BiSharper.Rv.Shape;
 public class RvShape
 {
     public List<float> MassArray { get; private set; }
-    public DetailLevel[] DetailLevels { get; private set; }
+    public RvShapeLod[] DetailLevels { get; private set; }
     public Vector3 CenterOfMass { get; private set; }
     public float Mass { get; private set; }
     public float InverseMass { get; private set; }
@@ -53,12 +53,12 @@ public class RvShape
         }
 
         bool treeCrownNeeded = false, canBlend = false;
-        DetailLevels = new DetailLevel[lodCount];
+        DetailLevels = new RvShapeLod[lodCount];
         for (var i = 0; i < lodCount; i++)
         {
             var shapeStart = reader.BaseStream.Position;
             var wasMassArray = MassArray.Count > 0;
-            var currentLod = DetailLevels[i] = new DetailLevel(reader, shapeVersion, GeometryUsed.Default, reversed, MassArray, this);
+            var currentLod = DetailLevels[i] = new RvShapeLod(reader, shapeVersion, GeometryUsed.Default, reversed, MassArray, this);
             if (currentLod.Resolution < 0) throw new Exception($"Fatal: Lod {i} has a resolution less than 0.");
 
             var geometry = SpecialLodType.ResolveGeometryUsed(currentLod.Resolution);

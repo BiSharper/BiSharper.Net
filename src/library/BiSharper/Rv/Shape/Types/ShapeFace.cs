@@ -8,7 +8,7 @@ namespace BiSharper.Rv.Shape.Types;
 
 public readonly struct ShapeFace
 {
-    public DetailLevel LOD { get; private init; }
+    public RvShapeLod LOD { get; private init; }
     public ShapeVertex[] Vertices { get; private init; }
     public string Texture { get; private init; }
     public string? Material { get; private init; }
@@ -17,14 +17,14 @@ public readonly struct ShapeFace
     public int MinimumMaterial { get; private init; }
     public static readonly float MinimumNormal = (float)Math.Sqrt(0.1f);
     
-    public static ShapeFace[] ReadMulti(BinaryReader reader, GeometryUsed geometryUsed, bool extended, bool material, DetailLevel parent, int count)
+    public static ShapeFace[] ReadMulti(BinaryReader reader, GeometryUsed geometryUsed, bool extended, bool material, RvShapeLod parent, int count)
     {
         var faces = new ShapeFace[count];
         for (var i = 0; i < count; i++) faces[i] = new ShapeFace(reader, geometryUsed,  extended, material, parent);
         return faces;
     }
 
-    public ShapeFace(BinaryReader reader, GeometryUsed geometryUsed, bool extended, bool material, DetailLevel parent)
+    public ShapeFace(BinaryReader reader, GeometryUsed geometryUsed, bool extended, bool material, RvShapeLod parent)
     {
         LOD = parent;
         Hints = 0;

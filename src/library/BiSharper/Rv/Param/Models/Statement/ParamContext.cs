@@ -3,9 +3,10 @@ using BiSharper.Rv.Param.Models.Value;
 
 namespace BiSharper.Rv.Param.Models.Statement;
 
-public class ParamContext : IParamContextHolder
+public class ParamContext : IParamContext
 {
-    public required IParamContextHolder ParentContextHolder { get; init; }
+    public required IParamContext ParentContext { get; init; }
+    public required string ContextName { get; init; }
     public required string? ConformsTo { get; init; }
     public required ConcurrentDictionary<string, IParamValue> Parameters { get; init; } = new();
     public required ConcurrentDictionary<string, ParamContext> Contexts { get; init; }

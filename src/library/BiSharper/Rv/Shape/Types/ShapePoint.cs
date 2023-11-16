@@ -6,14 +6,14 @@ namespace BiSharper.Rv.Shape.Types;
 
 public readonly struct ShapePoint
 {
-    public DetailLevel LOD { get; private init; }
+    public RvShapeLod LOD { get; private init; }
     public float X { get; private init; }
     public float Y { get; private init; }
     public float Z { get; private init; }
     public bool Hidden { get; private init; }
     public ShapeHint Hints { get; private init; }
     
-    public static ShapePoint[] ReadMulti(BinaryReader reader, bool extended, DetailLevel parent, int count)
+    public static ShapePoint[] ReadMulti(BinaryReader reader, bool extended, RvShapeLod parent, int count)
     {
         var points = new ShapePoint[count];
         for (var i = 0; i < count; i++) points[i] = new ShapePoint(reader, extended, parent);
@@ -22,7 +22,7 @@ public readonly struct ShapePoint
     
     public static implicit operator Vector3(ShapePoint point) => new(point.X, point.Y, point.Z);
 
-    public ShapePoint(BinaryReader reader, bool extended, DetailLevel parent)
+    public ShapePoint(BinaryReader reader, bool extended, RvShapeLod parent)
     {
         LOD = parent;
         X = reader.ReadSingle();

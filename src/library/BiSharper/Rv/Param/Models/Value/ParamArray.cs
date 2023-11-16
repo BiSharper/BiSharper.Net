@@ -6,7 +6,7 @@ namespace BiSharper.Rv.Param.Models.Value;
 public readonly struct ParamArray : IParamArray
 {
     public required ConcurrentBag<IParamValue> Values { get; init; } = new();
-    public required IParamContextHolder ParentContextHolder { get; init; }
+    public required IParamContext ParentContext { get; init; }
 
     public ParamArray()
     {

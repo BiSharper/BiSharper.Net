@@ -13,7 +13,7 @@ public partial struct ParamRoot : IParsed<RvProcessorContext>
 {
     public void Parse(Lexer lexer)
     {
-        var contexts = new Stack<IParamContextHolder>();
+        var contexts = new Stack<IParamContext>();
         var currentLine = 1;
         contexts.Push(this);
         while (contexts.Peek() is { } currentContext)
@@ -55,7 +55,7 @@ public partial struct ParamRoot : IParsed<RvProcessorContext>
                     currentContext.Statements.Add(new ParamDeleteContext
                     {
                         ContextName = word,
-                        ParentContextHolder = currentContext
+                        ParentContext = currentContext
                     });
                     break;
                 }
@@ -71,7 +71,7 @@ public partial struct ParamRoot : IParsed<RvProcessorContext>
                             currentContext.Statements.Add(new ParamExternalContext
                             {
                                 ContextName = word,
-                                ParentContextHolder = currentContext
+                                ParentContext = currentContext
                             });
                             continue;
                         case ':':
@@ -90,11 +90,12 @@ public partial struct ParamRoot : IParsed<RvProcessorContext>
                     if (current != '{') throw new Exception($"[{currentLine}] Expected '{{', instead got {current}.");
                     var clazz = new ParamContext
                     {
-                        ParentContextHolder = currentContext,
+                        ParentContext = currentContext,
                         ConformsTo = parentClass,
                         Parameters = new ConcurrentDictionary<string, IParamValue>(),
                         Contexts = new ConcurrentDictionary<string, ParamContext>(),
-                        Statements = new ConcurrentBag<IParamStatement>()
+                        Statements = new ConcurrentBag<IParamStatement>(),
+                        ContextName = word
                     };
                     currentContext.Contexts[word] = clazz;
                     contexts.Push(clazz);
@@ -114,7 +115,7 @@ public partial struct ParamRoot : IParsed<RvProcessorContext>
         }
     }
 
-    private static void ReadEndContext(Lexer lexer, ref int currentLine, Stack<IParamContextHolder> contexts)
+    private static void ReadEndContext(Lexer lexer, ref int currentLine, Stack<IParamContext> contexts)
     {
         lexer.StepForward();
         var current = lexer.Current;

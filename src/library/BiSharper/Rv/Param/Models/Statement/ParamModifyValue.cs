@@ -7,5 +7,5 @@ public readonly struct ParamModifyValue: IParamStatement
     public required bool Negated { get; init; }
     public required string PropertyName { get; init; }
     public required IParamArray Value { get; init; }
-    public required IParamContextHolder ParentContextHolder { get; init; }
+    public required IParamContext ParentContext { get; init; }
 }

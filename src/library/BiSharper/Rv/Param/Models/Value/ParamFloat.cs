@@ -3,7 +3,7 @@
 public readonly struct ParamFloat : IParamValue
 {
     public required float Value { get; init; }
-    public required IParamContextHolder ParentContextHolder { get; init; }
+    public required IParamContext ParentContext { get; init; }
     
     public static implicit operator float(ParamFloat self) => self.Value;
     
