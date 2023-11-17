@@ -8,6 +8,7 @@ public interface IParamContext
 {
     public string ContextName { get; init; }
     public ConcurrentBag<IParamStatement> Statements { get; init; }
-    public ConcurrentDictionary<string, IParamValue> Parameters { get; init; }
+    public ConcurrentDictionary<ParamParMeta, IParamValue> Parameters { get; init; }
     public ConcurrentDictionary<string, ParamContext> Contexts { get; init; }
 }
+

@@ -92,7 +92,7 @@ public partial struct ParamRoot : IParsed<RvProcessorContext>
                     {
                         ParentContext = currentContext,
                         ConformsTo = parentClass,
-                        Parameters = new ConcurrentDictionary<string, IParamValue>(),
+                        Parameters = new ConcurrentDictionary<ParamParMeta, IParamValue>(),
                         Contexts = new ConcurrentDictionary<string, ParamContext>(),
                         Statements = new ConcurrentBag<IParamStatement>(),
                         ContextName = word

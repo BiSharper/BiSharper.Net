@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 
 namespace BiSharper.Rv.Param.Models.Value;
 
+[ParamValue(ParamValueType.Array)]
 public readonly struct ParamArray : IParamArray
 {
     public required ConcurrentBag<IParamValue> Values { get; init; } = new();
