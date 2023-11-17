@@ -9,7 +9,7 @@ using BiSharper.Rv.Proc;
 
 namespace BiSharper.Rv.Param;
 
-public partial struct ParamRoot : IParsed<RvProcessorContext>
+public partial class ParamRoot : IParsed<RvProcessorContext>
 {
     public void Parse(Lexer lexer)
     {
@@ -52,7 +52,7 @@ public partial struct ParamRoot : IParsed<RvProcessorContext>
                         throw new Exception($"[{currentLine}] Expected semicolon");
                     }
 
-                    currentContext.Statements.Add(new ParamDeleteContext
+                    currentContext.AddStatement(new ParamDeleteContext
                     {
                         ContextName = word,
                         ParentContext = currentContext
@@ -68,7 +68,7 @@ public partial struct ParamRoot : IParsed<RvProcessorContext>
                     switch (current)
                     {
                         case ';':
-                            currentContext.Statements.Add(new ParamExternalContext
+                            currentContext.AddStatement(new ParamExternalContext
                             {
                                 ContextName = word,
                                 ParentContext = currentContext
@@ -88,16 +88,11 @@ public partial struct ParamRoot : IParsed<RvProcessorContext>
                     current = lexer.Current;
                     
                     if (current != '{') throw new Exception($"[{currentLine}] Expected '{{', instead got {current}.");
-                    var clazz = new ParamContext
+                    var clazz = new ParamContext(word, parentClass)
                     {
                         ParentContext = currentContext,
-                        ConformsTo = parentClass,
-                        Parameters = new ConcurrentDictionary<ParamParMeta, IParamValue>(),
-                        Contexts = new ConcurrentDictionary<string, ParamContext>(),
-                        Statements = new ConcurrentBag<IParamStatement>(),
-                        ContextName = word
                     };
-                    currentContext.Contexts[word] = clazz;
+                    currentContext.AssignContext(word, clazz);
                     contexts.Push(clazz);
                     continue;
                 }

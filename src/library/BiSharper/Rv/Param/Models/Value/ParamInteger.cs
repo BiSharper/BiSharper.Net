@@ -1,5 +1,8 @@
-﻿namespace BiSharper.Rv.Param.Models.Value;
+﻿using BiSharper.Rv.Param.Models.Statement;
 
+namespace BiSharper.Rv.Param.Models.Value;
+
+[ParamValue(ParamValueType.Integer)]
 public readonly struct ParamInteger : IParamValue
 {
     public required int Value { get; init; }

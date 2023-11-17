@@ -5,16 +5,11 @@ using BiSharper.Rv.Param.Models.Value;
 
 namespace BiSharper.Rv.Param;
 
-public partial struct ParamRoot : IParamContext
+public partial class ParamRoot : BaseParamContext
 {
-    public string ContextName { get; init; }
-    public ConcurrentBag<IParamStatement> Statements { get; init; } = new();
-    public ConcurrentDictionary<ParamParMeta, IParamValue> Parameters { get; init; } = new();
-    public ConcurrentDictionary<string, ParamContext> Contexts { get; init; } = new();
-
-    public ParamRoot(string name)
+    public ParamRoot(string name) : base(name)
     {
-        ContextName = name;
+
     }
     
     

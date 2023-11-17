@@ -6,4 +6,6 @@ public enum ParamOperatorType : byte
     Assign,
     AdditiveAssign,
     SubtractiveAssign,
+
+    ArrayOperations = Assign | AdditiveAssign | SubtractiveAssign
 }

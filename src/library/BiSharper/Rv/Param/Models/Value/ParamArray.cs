@@ -1,9 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
+using BiSharper.Rv.Param.Models.Statement;
 
 namespace BiSharper.Rv.Param.Models.Value;
 
-[ParamValue(ParamValueType.Array)]
+[ParamValue(
+    ParamValueType.Array, ParamOperatorType.ArrayOperations)]
 public readonly struct ParamArray : IParamArray
 {
     public required ConcurrentBag<IParamValue> Values { get; init; } = new();
@@ -18,6 +20,4 @@ public readonly struct ParamArray : IParamArray
     public IEnumerator<IParamValue> GetEnumerator() => Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-
 }
