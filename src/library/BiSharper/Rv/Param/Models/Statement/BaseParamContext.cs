@@ -15,11 +15,18 @@ public abstract class BaseParamContext(string name) : IParamContext
         get => MutableContexts.AsReadOnly();
         init => MutableContexts = value.ToDictionary( k => k.Key, v => v.Value);
     }
+
+    public virtual ParamContext? FindContext(string contextName, string? contextParent = null) =>
+        Contexts
+            .Where(x => x.Key == contextName)
+            .Select(x => x.Value)
+            .FirstOrDefault();
+
     protected readonly Dictionary<string, ParamContext> MutableContexts = new();
 
     public string ContextName { get; init; } = name;
 
-    public IReadOnlyCollection<IParamStatement> Statements
+    public IEnumerable<IParamStatement> Statements
     {
         get => MutableStatements.AsReadOnly();
         init => MutableStatements = value.ToList();
