@@ -7,12 +7,9 @@
 [submodule "src/BiSharper.Installer"]
 	path = src/BiSharper.Installer
 	url = https://github.com/BiSharper/BiSharper.Installer
-[submodule "src/library/BiSharper/Rv/Param"]
-	path = src/library/BiSharper/Rv/Param
-	url = https://github.com/BiSharper/RvSharper.Param
 [submodule "src/library/BiSharper/Common"]
 	path = src/library/BiSharper/Common
 	url = https://github.com/BiSharper/BiSharper.Common
-[submodule "src/library/BiSharper/Rv/Bank"]
-	path = src/library/BiSharper/Rv/Bank
-	url = https://github.com/BiSharper/RvSharper.Bank
+[submodule "src/library/BiSharper/Rv"]
+	path = src/library/BiSharper/Rv
+	url = https://github.com/BiSharper/RvSharper
