@@ -13,3 +13,6 @@
 [submodule "src/library/BiSharper/Rv"]
 	path = src/library/BiSharper/Rv
 	url = https://github.com/BiSharper/RvSharper
+[submodule "src/library/BiSharper/Enfusion"]
+	path = src/library/BiSharper/Enfusion
+	url = https://github.com/BiSharper/EnfSharper
