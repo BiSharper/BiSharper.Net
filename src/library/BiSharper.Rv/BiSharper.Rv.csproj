@@ -7,11 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Param\Models\Serialization\" />
-      <Folder Include="Param\Models\Value\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\..\..\library\BiSharper.BisIO\BiSharper.BisIO.csproj" />
       <ProjectReference Include="..\BiSharper.BisIO\BiSharper.BisIO.csproj" />
       <ProjectReference Include="..\BiSharper\BiSharper.csproj" />

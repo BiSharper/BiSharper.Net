@@ -1,3 +1,3 @@
 ﻿namespace BiSharper.Rv.Param.Common;
 
-public class ParamDocument(string name) : ParamContext(name);
+public sealed class ParamDocument(string name) : ParamContext(name);

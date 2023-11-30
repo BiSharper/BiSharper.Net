@@ -1,5 +1,4 @@
-﻿using BiSharper.Rv.Param;
-using BiSharper.Rv.Param.Common;
+﻿using BiSharper.Rv.Param.Common;
 using BiSharper.Rv.Render.Texture.Models.Clutter;
 using BiSharper.Rv.Sound;
 
@@ -40,15 +39,15 @@ public class RvSurfaceInfo
     /// </summary>
     public bool IsWater => Context.GetString("isWater") == "true" || SoundEnvironment == "water" ;
 
-    public float Audibility => Context.GetFloat("audibility") ?? 1;
+    // public float Audibility => Context.GetFloat("audibility") ?? 1;
     /// <summary>
     /// Describes the irregularity of the surface
     /// </summary>
-    public float Roughness => Context.GetFloat("rough") ?? 0;
+    // public float Roughness => Context.GetFloat("rough") ?? 0;
     /// <summary>
     /// The amount of dust generated from the surface
     /// </summary>
-    public float DustProduction => Context.GetFloat("dust") ?? 0;
+    // public float DustProduction => Context.GetFloat("dust") ?? 0;
     public string? SoundEnvironment => Context.GetString("soundEnviron");
     public string? ImpactType => Context.GetString("impact");
     public Dictionary<RvVisiblePose, float> Visibility = new();
@@ -63,10 +62,10 @@ public class RvSurfaceInfo
     {
         Context = context;
         if (context.GetClass("visibility") is not { } visibility) return;
-        Visibility[RvVisiblePose.Down] = visibility.GetFloat("down") ?? 1;
-        Visibility[RvVisiblePose.Prone] = visibility.GetFloat("prone") ?? 1;
-        Visibility[RvVisiblePose.Kneel] = visibility.GetFloat("kneel") ?? 1;
-        Visibility[RvVisiblePose.Stand] = visibility.GetFloat("stand") ?? 1;
+        // Visibility[RvVisiblePose.Down] = visibility.GetFloat("down") ?? 1;
+        // Visibility[RvVisiblePose.Prone] = visibility.GetFloat("prone") ?? 1;
+        // Visibility[RvVisiblePose.Kneel] = visibility.GetFloat("kneel") ?? 1;
+        // Visibility[RvVisiblePose.Stand] = visibility.GetFloat("stand") ?? 1;
 
     }
 

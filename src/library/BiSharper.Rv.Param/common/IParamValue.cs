@@ -1,7 +1,7 @@
 ﻿
 namespace BiSharper.Rv.Param.Common;
 
-public interface IParamValue
+public interface IParamValue : IParamElement
 {
     public object ValueUnwrapped { get; }
 
@@ -22,7 +22,7 @@ public static class ParamValueExtension
     public static bool SupportsOperator(this IParamValue value, ParamOperatorType op) =>
         (GetMetadata(value).SupportedOperators & op) == op;
 
-    internal static ParamValueAttribute GetMetadata(this IParamValue value)
+    private static ParamValueAttribute GetMetadata(this IParamValue value)
     {
         var valueType = value.GetType();
         _ = ValueMeta.TryGetValue(valueType, out var attribute);
@@ -31,4 +31,7 @@ public static class ParamValueExtension
         ValueMeta[valueType] = attribute = metadata;
         return attribute;
     }
+
+    public static ParamValueType GetValueType(this IParamValue value) =>
+        value.GetMetadata().ValueType;
 }
