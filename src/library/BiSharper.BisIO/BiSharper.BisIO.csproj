@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AssemblyName>BiSharper.BisIO</AssemblyName>
+        <RootNamespace>BiSharper.BisIO</RootNamespace>
+        <TargetFrameworks>net7.0;net7.0-windows;net8.0</TargetFrameworks>
+        <LangVersion>12</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\library\BiSharper\BiSharper.csproj" />
+    </ItemGroup>
+
+</Project>

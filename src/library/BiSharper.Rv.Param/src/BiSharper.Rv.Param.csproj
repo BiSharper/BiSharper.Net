@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>12</LangVersion>
+        <TargetFrameworks>net7.0;net7.0-windows;net8.0</TargetFrameworks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\BiSharper\BiSharper.csproj" />
+      <ProjectReference Include="..\..\common\BiSharper.Rv.Param.Common\BiSharper.Rv.Param.Common.csproj" />
+      <ProjectReference Include="..\common\BiSharper.Rv.Param.Common.csproj" />
+    </ItemGroup>
+
+</Project>

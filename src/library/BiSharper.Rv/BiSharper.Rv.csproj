@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Folder Include="Param\Models\Serialization\" />
+      <Folder Include="Param\Models\Value\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\library\BiSharper.BisIO\BiSharper.BisIO.csproj" />
+      <ProjectReference Include="..\BiSharper.BisIO\BiSharper.BisIO.csproj" />
+      <ProjectReference Include="..\BiSharper\BiSharper.csproj" />
+    </ItemGroup>
+
+</Project>
