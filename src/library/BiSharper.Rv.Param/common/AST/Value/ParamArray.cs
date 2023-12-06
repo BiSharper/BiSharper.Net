@@ -1,8 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
-using BiSharper.Rv.Param.Common.AST.Abstraction;
+using BiSharper.Rv.Param.AST.Abstraction;
 
-namespace BiSharper.Rv.Param.Common.AST.Value;
+namespace BiSharper.Rv.Param.AST.Value;
 
 public readonly struct ParamArray : IEnumerable<IParamValue>, IParamValue
 {

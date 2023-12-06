@@ -1,3 +1,3 @@
-﻿namespace BiSharper.Rv.Param.Common.AST.Abstraction;
+﻿namespace BiSharper.Rv.Param.AST.Abstraction;
 
 public interface IParamContextualStatement : IParamElement, IParamStatement;

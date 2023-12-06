@@ -16,7 +16,6 @@
     <ItemGroup>
       <ProjectReference Include="..\library\BiSharper.ApplicationFramework\src\BiSharper.ApplicationFramework\BiSharper.ApplicationFramework.csproj" />
       <ProjectReference Include="..\library\BiSharper\BiSharper.csproj" />
-      <ProjectReference Include="..\modules\BankPeek\src\modules\BankPeek\src\BankPeek\BankPeek.csproj" />
     </ItemGroup>
     
 </Project>

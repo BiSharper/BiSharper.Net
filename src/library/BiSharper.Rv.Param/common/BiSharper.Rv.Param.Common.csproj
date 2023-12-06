@@ -5,14 +5,11 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>12</LangVersion>
+        <RootNamespace>BiSharper.Rv.Param</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\BiSharper\BiSharper.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Formatters\" />
     </ItemGroup>
 
 </Project>

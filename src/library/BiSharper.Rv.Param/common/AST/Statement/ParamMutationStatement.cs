@@ -1,7 +1,7 @@
-﻿using BiSharper.Rv.Param.Common.AST.Abstraction;
-using BiSharper.Rv.Param.Common.AST.Value;
+﻿using BiSharper.Rv.Param.AST.Abstraction;
+using BiSharper.Rv.Param.AST.Value;
 
-namespace BiSharper.Rv.Param.Common.AST.Statement;
+namespace BiSharper.Rv.Param.AST.Statement;
 
 public readonly struct ParamMutationStatement : IParamComputableStatement
 {

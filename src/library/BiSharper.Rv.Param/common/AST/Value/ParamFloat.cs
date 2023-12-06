@@ -1,6 +1,6 @@
-﻿using BiSharper.Rv.Param.Common.AST.Abstraction;
+﻿using BiSharper.Rv.Param.AST.Abstraction;
 
-namespace BiSharper.Rv.Param.Common.AST.Value;
+namespace BiSharper.Rv.Param.AST.Value;
 
 public readonly struct ParamFloat : IParamValue
 {

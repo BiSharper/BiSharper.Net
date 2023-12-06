@@ -1,4 +1,4 @@
-﻿namespace BiSharper.Rv.Param.Common.AST.Abstraction;
+﻿namespace BiSharper.Rv.Param.AST.Abstraction;
 
 [Flags]
 public enum ParamContextAccessibility

@@ -7,7 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\library\BiSharper.BisIO\BiSharper.BisIO.csproj" />
       <ProjectReference Include="..\BiSharper.BisIO\BiSharper.BisIO.csproj" />
       <ProjectReference Include="..\BiSharper\BiSharper.csproj" />
     </ItemGroup>

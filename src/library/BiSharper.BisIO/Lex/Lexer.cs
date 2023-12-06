@@ -1,250 +1,125 @@
-﻿using System.Text;
+﻿using System.Buffers;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace BiSharper.BisIO.Lex;
 
-public sealed partial class Lexer : IDisposable
+public ref struct Lexer
 {
-    private readonly Stream _stream;
-    private readonly int _maxBufferReadLength;
-    private readonly char[] _buffer;
-    private readonly Encoder _encoder;
-    private bool _disposed;
-    private long _bufferStart, _bufferEnd;
-    private int _bufferIndex, _bufferLength;
-    private bool _lastBuffer;
-    private bool EndOfBuffer => _bufferIndex >= _bufferLength;
-    public int LineNumber { get; set; }
-    public bool LineNumberBeingUsed { get; set; }
-    
-    public readonly Encoding Encoding;
-    public readonly int CacheSize;
-    public long Position => _bufferStart + _bufferIndex;
-    public long Length => _stream.Length;
-    public char? Previous;
-    public char? Current;
-    public bool EOF => Current == null || Position > Length || (EndOfBuffer && _lastBuffer);
+    private readonly ReadOnlySequence<byte> _sequence;
+    private readonly bool _isInputSequence, _isMultiSegment;
+    public readonly long Length => _isInputSequence ? _sequence.Length : _segmentSpan.Length;
+    private ReadOnlySpan<byte> _segmentSpan;
+    private ReadOnlyMemory<byte>? _nextSegmentMemory;
+    private int SegmentIndex { get; set; }
+    private SequencePosition _currentSegment;
+    private SequencePosition? _nextSegment;
+    private bool IsLastSegment { get; set; }
 
-    // ReSharper disable once UnusedParameter.Local C# why no duplicate constructors :(
-    private Lexer(Stream stream, Encoding encoding, int cacheSize, bool _)
-    {
-        _stream = stream;
-        if(!stream.CanSeek) throw new InvalidOperationException("Stream does not support seeking which is needed in the current lexing process.");
-        Encoding = encoding;
-        _encoder = Encoding.GetEncoder();
-        CacheSize = cacheSize;
-        _maxBufferReadLength = Encoding.GetMaxByteCount(CacheSize);
-        _buffer = new char[CacheSize];
-        _bufferStart = _stream.Position;
-    }
-    
-    public Lexer(Stream stream, Encoding encoding, int cacheSize = 8) : this(stream, encoding, cacheSize, false)
-    {
-        ConsumeBuffer();
+    private readonly bool IsLastSpan => !_isMultiSegment || IsLastSegment;
+
+    private readonly SequencePosition SequencePosition => _sequence.GetPosition(SegmentIndex, _currentSegment);
+
+    private readonly bool HasNext {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => SegmentIndex < _segmentSpan.Length || !IsLastSpan;
     }
 
-    ~Lexer()
+    public readonly int Position
     {
-        Dispose();
-    }
-
-    public void UseLineNumber(int start = 0)
-    {
-        if (LineNumberBeingUsed) return;
-        LineNumberBeingUsed = true;
-        LineNumber = start;
-    }
-
-    public void StepBackward()
-    {
-        if (_bufferIndex == 0 || (Previous == null && _bufferStart != 0))
+        get
         {
-            if (_bufferStart == 0)
-            {
-                throw new Exception("The start of the stream has been reached. Can't step back further.");
-            }
-            Array.Copy(_buffer, 0, _buffer, 1, _buffer.Length - 1);
-            _buffer[0] = PeekAt(--_bufferStart) ?? throw new Exception("This shouldn't happen.");
-            Current = _buffer[0];
-            Previous = _bufferIndex == 0 ? null : _buffer[_bufferIndex - 1];
-            return;
-        } 
-        _bufferIndex--;
-        Current = _buffer[_bufferIndex];
-        Previous = _bufferIndex == 0 ? null : _buffer[_bufferIndex - 1];
-    }
-    
-    public void StepForward()
-    {
-        _bufferIndex += 1;
-        if (!EndOfBuffer)
-        {
-            Previous = Current;
-            Current = _buffer[_bufferIndex];
-            return;
-        } 
-        ConsumeBuffer();
-    }
-
-    public char? Swallow()
-    {
-        StepForward();
-        return Current;
-    }
-
-    public bool Take(char? target)
-    {
-        if (Current == target)
-        {
-            StepForward();
-            return true;
-        }
-
-        return false;
-    }
-
-    public bool Give(char? target)
-    {
-        if (Current != target)
-        {
-            StepForward();
-            return true;
-        }
-
-        return false;
-    }
-
-    public char? Consume()
-    {
-        var target = Current;
-        StepForward();
-        return target;
-    }
-    
-    public char? ConsumeNot(char target)
-    {
-        var last = Consume();
-        while (!EOF && last == target)
-        {
-            last = Consume();
-        }
-
-        return last;
-    }
-
-    private char? PeekAt(long index)
-    {
-        var oldPos = _stream.Position;
-        try
-        {
-            lock (_stream)
-            {
-                _stream.Position = index;
-                var maxByteCount = Encoding.GetMaxByteCount(1);
-                Span<byte> buffer = stackalloc byte[maxByteCount];
-                var bytesRead = _stream.Read(buffer);
-                if (bytesRead == 0)
-                {
-                    return null;
-                }
-                
-                Span<char> decodedChars = stackalloc char[Encoding.GetMaxCharCount(maxByteCount)];
-                if( Encoding.GetChars(buffer, decodedChars ) < 1) return null;
-                return decodedChars[0];
-            }
-        }
-        finally
-        {
-            _stream.Seek(oldPos, SeekOrigin.Begin);
+            if (!_isInputSequence) return SegmentIndex;
+            Debug.Assert(_currentSegment.GetObject() != null);
+            return _currentSegment.GetInteger() + SegmentIndex;
         }
     }
 
-    public char? Peek()
+    private Lexer(ReadOnlySequence<byte>? sequence, ReadOnlySpan<byte> data)
     {
-        if (_bufferIndex + 1 >= _bufferLength)
+        SegmentIndex = 0;
+        if(sequence is null)
         {
-            return _lastBuffer ? null : PeekAt(Position - 1);
+            IsLastSegment = true;
+            _isMultiSegment = true;
+            _isInputSequence = false;
         }
-        
-        return _buffer[_bufferIndex + 1];
-    }
-
-    public char? ConsumeCountNot(char target, out uint count)
-    {
-        char? last = null;
-        for (count = 0; !EOF && (last = Consume()) != target; count++) { }
-        return last;
-    }
-
-    public void SeekUntil(char target)
-    {
-        while (!EOF && Give(target))
+        else
         {
+            _isInputSequence = false;
+            _isMultiSegment = sequence.Value.IsSingleSegment;
+            if (_isMultiSegment) IsLastSegment = true;
         }
+        _sequence = sequence ?? default;
+        _segmentSpan = data;
     }
-    
-    public string ConsumeUntil(char target)
+
+    public Lexer(ReadOnlySpan<byte> data) : this(null, data)
     {
-        var result = new StringBuilder();
-        while (!EOF && Give(target))
+        _currentSegment = default;
+        _nextSegment = null;
+        _nextSegmentMemory = null;
+    }
+
+    public Lexer(ReadOnlySequence<byte> sequence) : this(sequence, sequence.FirstSpan)
+    {
+        _currentSegment = _sequence.Start;
+        IsLastSegment = _isMultiSegment;
+        TryGetNextSegment(out _nextSegment, out _nextSegmentMemory);
+    }
+
+    public byte? ConsumeNext()
+    {
+        if(!HasNext) return null;
+        SegmentIndex++;
+
+        if (SegmentIndex >= _segmentSpan.Length && !IsLastSegment) NextSegment();
+
+        return _segmentSpan[SegmentIndex];
+    }
+
+    public byte? PeekNext()
+    {
+        if (SegmentIndex < _segmentSpan.Length - 1) return _segmentSpan[SegmentIndex + 1];
+        return !IsLastSegment ? _nextSegmentMemory?.Span[0] : null;
+    }
+
+    private bool NextSegment()
+    {
+        if (!_isMultiSegment || _nextSegment is null || _nextSegmentMemory is null) return false;
+        _segmentSpan = _nextSegmentMemory.Value.Span;
+        SegmentIndex = 0;
+        _currentSegment = _nextSegment.Value;
+        IsLastSegment = TryGetNextSegment(out _nextSegment, out _nextSegmentMemory);
+        return true;
+    }
+
+    private bool TryGetNextSegment(out SequencePosition? position, out ReadOnlyMemory<byte>? memory)
+    {
+        _nextSegment = _currentSegment;
+        if (
+            !_isMultiSegment
+            || !NextSegmentDataRelativeTo(ref _nextSegment, out var segmentData)
+        )
         {
-            result.Append(Previous);
+            memory = null;
+            position = _currentSegment;
+            return false;
         }
 
-        return result.ToString();
-    }
-    
-    private void ConsumeBuffer()
-    {
-        lock (_stream)
-        {
-            Previous = Current;
-            Span<byte> bBuffer = stackalloc byte[_maxBufferReadLength];
-            var bytesRead = _stream.Read(bBuffer);
-            _bufferIndex = 0;
-            Span<char> chars = stackalloc char[CacheSize];
 
-            _encoder.Convert(
-                chars,
-                bBuffer[..bytesRead],
-                flush: false,
-                out var bytesUsed,
-                out var charsProduced,
-                out _
-            );
-            chars[..charsProduced].CopyTo(_buffer);
-            if (bytesUsed < bytesRead)
-            {
-                _stream.Position -= bytesRead - bytesUsed;
-            }
-
-            _bufferLength = charsProduced;
-            
-            _bufferStart += bytesUsed;
-            Current = _bufferLength == 0 ? null : _buffer[_bufferIndex];
-            _bufferEnd = _bufferStart + _bufferLength;
-            _lastBuffer = _bufferLength != CacheSize;
-        }
+        memory = segmentData;
+        position = _nextSegment!.Value;
+        return true;
     }
 
-    public void Dispose()
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool NextSegmentDataRelativeTo(ref SequencePosition? startPosition, out ReadOnlyMemory<byte> memory)
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-    
-    private void Dispose(bool disposing)
-    {
-        if (!_disposed)
-        {
-
-            if (disposing)
-            {
-                _stream.Dispose();
-            }
-            
-
-            _disposed = true;
-        }
+        var pos = startPosition ??= _currentSegment;
+        var result = _sequence.TryGet(ref pos, out memory, advance: true);
+        startPosition = pos;
+        return result;
     }
 
 }

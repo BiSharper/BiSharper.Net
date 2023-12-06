@@ -8,7 +8,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\library\BiSharper.BisIO\BiSharper.BisIO.csproj" />
       <ProjectReference Include="..\BiSharper.BisIO\BiSharper.BisIO.csproj" />
       <ProjectReference Include="..\BiSharper.Rv.Param\common\BiSharper.Rv.Param.Common.csproj" />
       <ProjectReference Include="..\BiSharper.Rv.Param\gen\BiSharper.Rv.Param.Generator.csproj" />

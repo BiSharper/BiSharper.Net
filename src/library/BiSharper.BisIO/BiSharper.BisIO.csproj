@@ -10,7 +10,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\library\BiSharper\BiSharper.csproj" />
+      <ProjectReference Include="..\BiSharper\BiSharper.csproj" />
     </ItemGroup>
+
 
 </Project>

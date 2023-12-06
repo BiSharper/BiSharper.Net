@@ -1,8 +1,7 @@
 ﻿using System.Data;
-using BiSharper.Rv.Param.Common.AST.Statement;
-using BiSharper.Rv.Param.Common.AST.Value;
+using BiSharper.Rv.Param.AST.Statement;
 
-namespace BiSharper.Rv.Param.Common.AST.Abstraction;
+namespace BiSharper.Rv.Param.AST.Abstraction;
 
 
 public abstract class ParamContext
