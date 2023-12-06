@@ -6,13 +6,7 @@ namespace BiSharper.Rv.Param.Common.AST.Value;
 public readonly struct ParamInteger : IParamValue
 {
     public int Value { get; }
-    public IParamElement Parent { get; }
-
-    public ParamInteger(int value, IParamElement parent)
-    {
-        Value = value;
-        Parent = parent;
-    }
-
+    public ParamInteger(int value) => Value = value;
+    public static explicit operator ParamInteger(int self) => new(self);
     public static implicit operator int(ParamInteger self) => self.Value;
 }

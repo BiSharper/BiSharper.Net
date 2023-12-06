@@ -2,7 +2,7 @@
 
 namespace BiSharper.Rv.Param.Common.AST.Statement;
 
-public sealed class ParamClass : ParamContext, IParamStatement
+public sealed class ParamClass : ParamContext, IParamContextualStatement
 {
     public IParamElement Parent => (IParamElement) ParentContext;
     public ParamContext ParentContext { get; }

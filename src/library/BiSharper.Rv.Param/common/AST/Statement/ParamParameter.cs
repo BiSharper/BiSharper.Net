@@ -2,7 +2,7 @@
 
 namespace BiSharper.Rv.Param.Common.AST.Statement;
 
-public sealed class ParamParameter : IParamStatement
+public sealed class ParamParameter : IParamContextualStatement
 {
     public string Name { get; }
     public IParamValue Value { get; set; }
