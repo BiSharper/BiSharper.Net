@@ -13,4 +13,8 @@
       <ProjectReference Include="..\common\BiSharper.Rv.Param.Common.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Serialization\" />
+    </ItemGroup>
+
 </Project>

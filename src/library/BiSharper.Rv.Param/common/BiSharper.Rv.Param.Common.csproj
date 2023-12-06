@@ -11,4 +11,8 @@
       <ProjectReference Include="..\..\BiSharper\BiSharper.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Formatters\" />
+    </ItemGroup>
+
 </Project>
