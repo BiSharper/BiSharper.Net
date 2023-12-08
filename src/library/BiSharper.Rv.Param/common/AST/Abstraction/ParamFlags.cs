@@ -1,13 +1,14 @@
 ﻿namespace BiSharper.Rv.Param.AST.Abstraction;
 
 [Flags]
-public enum ParamContextAccessibility
+public enum ParamContextAccessibility : byte
 {
-    ReadWrite, //Default
+    Default, //Default - Read Write
     ReadCreate, //Only allow adding new class members
     ReadOnly,
     ReadOnlyVerified, //Apply CRC Test
 
+    DeletionProhibited = ReadCreate | CompleteImmutability,
     CompleteImmutability = ReadOnly | ReadOnlyVerified,
     ImmutableProperties = CompleteImmutability | ReadCreate,
 }

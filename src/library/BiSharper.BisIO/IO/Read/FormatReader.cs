@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace BiSharper.BisIO.IO;
+namespace BiSharper.BisIO.IO.Read;
 
 public static class FormatReader
 {

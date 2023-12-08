@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using System.Text;
 using BiSharper.BisIO.IO;
+using BiSharper.BisIO.IO.Read;
 using BiSharper.Rv.Render.Shape.Flags.Internal;
 using BiSharper.Rv.Shape.Flags;
 

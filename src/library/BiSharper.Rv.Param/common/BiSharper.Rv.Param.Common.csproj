@@ -6,6 +6,7 @@
         <Nullable>enable</Nullable>
         <LangVersion>12</LangVersion>
         <RootNamespace>BiSharper.Rv.Param</RootNamespace>
+        <PackageId>BiSharper.Rv.Param.Common</PackageId>
     </PropertyGroup>
 
     <ItemGroup>

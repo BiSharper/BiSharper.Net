@@ -1,6 +1,6 @@
 ﻿namespace BiSharper.Rv.Param.Serialization;
 
-public enum ParamSerializationMode
+public enum ParamSerializationMode : byte
 {
     Class,
     Array
