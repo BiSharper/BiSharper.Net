@@ -5,7 +5,7 @@ public class ParamSerializableAttribute : Attribute
 {
     public ParamSerializationMode Mode { get; }
 
-    public ParamSerializableAttribute(ParamSerializationMode mode = ParamSerializationMode.Class)
+    public ParamSerializableAttribute(ParamSerializationMode mode = ParamSerializationMode.ClassGeneration)
     {
         Mode = mode;
     }

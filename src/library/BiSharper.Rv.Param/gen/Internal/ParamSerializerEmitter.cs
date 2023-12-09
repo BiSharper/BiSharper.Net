@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using BiSharper.Rv.Param.Serialization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,7 +8,6 @@ namespace BiSharper.Rv.Param.Generator.Internal;
 
 internal static class ParamSerializerEmitter
 {
-
     public static void GenerateSourceOutput(SourceProductionContext context, ((TypeDeclarationSyntax syntax, Compilation compilation) source, string? logPath) arguments) =>
         GenerateSourceOutput(arguments.source.syntax, arguments.source.compilation, arguments.logPath, context);
 
@@ -19,20 +19,39 @@ internal static class ParamSerializerEmitter
     )
     {
         var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
+
         if (ModelExtensions.GetDeclaredSymbol(semanticModel, syntax, context.CancellationToken) is not {} typeSymbol) return;
+        if (!LooksValid(syntax, typeSymbol, out var diagnostic))
         {
-            if (!LooksValid(syntax, typeSymbol, out var diagnostic))
-            {
-                context.ReportDiagnostic(diagnostic!);
-                return;
-            }
+            context.ReportDiagnostic(diagnostic!);
+            return;
         }
 
         var reference = new ReferenceSymbols(compilation);
+        if (!ShouldGenerateSerializableType(typeSymbol, reference, syntax, out diagnostic, out var typeMeta))
+        {
+            if (diagnostic != null) context.ReportDiagnostic(diagnostic);
+            return;
+        }
+
+        var fullType = typeMeta.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+            .Replace("global::", "")
+            .Replace("<", "_")
+            .Replace(">", "_");
 
 
         throw new System.NotImplementedException();
     }
+
+    private static bool ShouldGenerateSerializableType(
+        ISymbol typeSymbol,
+        ReferenceSymbols reference,
+        TypeDeclarationSyntax syntax,
+        out Diagnostic? diagnostic,
+        out ParamSerializableType type
+    ) =>
+        !(!(type = new ParamSerializableType(typeSymbol, reference)).ValidateForGeneration(syntax, out diagnostic) ||
+          type.SerializationMode != ParamSerializationMode.SkipGeneration);
 
 
     private static bool LooksValid(BaseTypeDeclarationSyntax syntax, ISymbol symbol, out Diagnostic? diagnostic)

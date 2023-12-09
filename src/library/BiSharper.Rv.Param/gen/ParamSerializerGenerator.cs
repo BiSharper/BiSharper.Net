@@ -16,7 +16,7 @@ public class ParamSerializerGenerator : IIncrementalGenerator
         var typeDeclarations = context.SyntaxProvider.ForAttributeWithMetadataName(
             ReferenceSymbols.ParamSerializableAttributePath,
             predicate: IsParamSerializable,
-            transform: static (context, token) => (TypeDeclarationSyntax)context.TargetNode
+            transform: RetrieveTypeDeclarationSyntax
         );
         var source = typeDeclarations
             .Combine(context.CompilationProvider)
@@ -26,6 +26,7 @@ public class ParamSerializerGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(source, ParamSerializerEmitter.GenerateSourceOutput);
     }
 
+    private static TypeDeclarationSyntax RetrieveTypeDeclarationSyntax(GeneratorAttributeSyntaxContext context, CancellationToken token) => (TypeDeclarationSyntax) context.TargetNode;
 
 
     private static bool IsParamSerializable(SyntaxNode node, CancellationToken token) =>

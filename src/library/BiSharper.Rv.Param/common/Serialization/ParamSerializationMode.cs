@@ -2,6 +2,7 @@
 
 public enum ParamSerializationMode : byte
 {
-    Class,
-    Array
+    ClassGeneration,
+    ArrayGeneration,
+    SkipGeneration
 }

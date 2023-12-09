@@ -4,8 +4,8 @@ namespace BiSharper.Rv.Param.Generator.Internal;
 
 internal class DiagnosticDescriptors
 {
-    private const string Category = "GenerateParamPack";
-    private const string DescriptorIdPrefix = "ParamPack-";
+    private const string Category = "GenerateParamSerializer";
+    private const string DescriptorIdPrefix = "ParamSerilizer-";
 
     public static readonly DiagnosticDescriptor MustBePartial = new(
         id: $"{DescriptorIdPrefix}1" ,
