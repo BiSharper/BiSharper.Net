@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace BiSharper.Rv.Param.Generator.Internal;
 
-internal class SyntaxComparer : IEqualityComparer<(TypeDeclarationSyntax, Compilation)>
+internal readonly struct SyntaxComparer : IEqualityComparer<(TypeDeclarationSyntax, Compilation)>
 {
     public static readonly SyntaxComparer Instance = new();
 

@@ -29,6 +29,10 @@
       <Compile Remove="Rv\Param\Models\Value\ParamArray.cs" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
+    </ItemGroup>
+
 
 
 

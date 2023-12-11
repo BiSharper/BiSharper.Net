@@ -2,7 +2,7 @@
 
 namespace BiSharper.Rv.Param.Generator.Internal;
 
-internal class DiagnosticDescriptors
+internal static class DiagnosticDescriptors
 {
     private const string Category = "GenerateParamSerializer";
     private const string DescriptorIdPrefix = "ParamSerilizer-";

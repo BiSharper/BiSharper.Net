@@ -5,7 +5,7 @@ using BiSharper.Rv.Param.AST.Statement;
 namespace BiSharper.Rv.Param.AST.Abstraction;
 
 
-public abstract class ParamContext : IParamStatement
+public abstract class ParamContext : IParamContext
 {
     private readonly ConcurrentDictionary<string, ParamParameter> _parameters = new();
     private readonly ConcurrentDictionary<string, ParamContext> _classes = new();
@@ -30,7 +30,7 @@ public abstract class ParamContext : IParamStatement
         AddStatements(statements, ParamComputeOption.Syntax);
     }
 
-    protected bool HasStatement(IParamStatement statement) => statement switch
+    public bool HasStatement(IParamStatement statement) => statement switch
     {
         ParamClass @class => _classes.ContainsKey(@class.ContextName),
         ParamParameter param => _parameters.ContainsKey(param.Name),
@@ -41,7 +41,7 @@ public abstract class ParamContext : IParamStatement
 
     public bool TryGetParameter(string name, out ParamParameter? param) => _parameters.TryGetValue(name, out param);
 
-    protected IParamStatement? AddStatement(IParamStatement? statement, ParamComputeOption mergeOption)
+    public IParamStatement? AddStatement(IParamStatement? statement, ParamComputeOption mergeOption)
     {
         if(statement is null || _computableStatements.Contains(statement)) return null;
         if (statement is not IParamComputableStatement computable) return statement switch
@@ -66,7 +66,7 @@ public abstract class ParamContext : IParamStatement
         return clazz;
     }
 
-    protected ParamContext MergeWith(ParamContext context, bool strict)
+    public ParamContext MergeWith(ParamContext context, bool strict)
     {
         AddStatements(context.Statements, strict ? ParamComputeOption.ComputeStrict : ParamComputeOption.Compute);
         return this;
@@ -91,14 +91,14 @@ public abstract class ParamContext : IParamStatement
         };
     }
 
-    protected void AddClasses(ICollection<ParamClass?>? classes, ParamComputeOption computeOption)
+    public void AddClasses(ICollection<ParamClass?>? classes, ParamComputeOption computeOption)
     {
         if (classes == null) return;
         foreach (var @class in classes)
             if (@class != null) AddClass(@class, computeOption);
     }
 
-    protected void AddStatements(IEnumerable<IParamStatement?>? statements, ParamComputeOption computeOption)
+    public void AddStatements(IEnumerable<IParamStatement?>? statements, ParamComputeOption computeOption)
     {
         if (statements == null) return;
         foreach (var statement in statements)
@@ -106,7 +106,7 @@ public abstract class ParamContext : IParamStatement
     }
 
 
-    protected void AddParameters(IEnumerable<ParamParameter?>? parameters)
+    public void AddParameters(IEnumerable<ParamParameter?>? parameters)
     {
         if (parameters == null) return;
         foreach (var parameter in parameters)
