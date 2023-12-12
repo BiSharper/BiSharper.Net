@@ -17,6 +17,9 @@ internal readonly struct ReferenceSymbols
         GetTypeByMetadataName("BiSharper.Rv.Param.Serialization.Attribute.ParamIgnoreAttribute");
     public INamedTypeSymbol ParamSerializableAttribute =>
         GetTypeByMetadataName(ParamSerializableAttributePath);
+
+    public INamedTypeSymbol ParamContextInterface =>
+        GetTypeByMetadataName("BiSharper.Rv.Param.AST.Abstraction.IParamContext");
     public INamedTypeSymbol ParamContext =>
         GetTypeByMetadataName("BiSharper.Rv.Param.AST.Abstraction.ParamContext");
 

@@ -8,7 +8,7 @@ namespace BiSharper.Rv.Param.AST.Abstraction;
 public abstract class ParamContext : IParamContext
 {
     private readonly ConcurrentDictionary<string, ParamParameter> _parameters = new();
-    private readonly ConcurrentDictionary<string, ParamContext> _classes = new();
+    private readonly ConcurrentDictionary<string, IParamContext> _classes = new();
     private readonly List<IParamComputableStatement> _computableStatements = [];
     public ParamContextAccessibility Accessibility { get; protected set; }
     public string ContextName { get; protected set; }
@@ -27,7 +27,7 @@ public abstract class ParamContext : IParamContext
     {
         ContextName = name;
         Accessibility = accessibility;
-        AddStatements(statements, ParamComputeOption.Syntax);
+        this.AddStatements(statements, ParamComputeOption.Syntax);
     }
 
     public bool HasStatement(IParamStatement statement) => statement switch
@@ -37,43 +37,47 @@ public abstract class ParamContext : IParamContext
         _ => _computableStatements.Contains(statement)
     };
 
-    public bool TryGetClass(string name, out ParamContext? @class) => _classes.TryGetValue(name, out @class);
+    public bool TryGetClass(string name, out IParamContext? @class) => _classes.TryGetValue(name, out @class);
 
     public bool TryGetParameter(string name, out ParamParameter? param) => _parameters.TryGetValue(name, out param);
 
     public IParamStatement? AddStatement(IParamStatement? statement, ParamComputeOption mergeOption)
     {
         if(statement is null || _computableStatements.Contains(statement)) return null;
-        if (statement is not IParamComputableStatement computable) return statement switch
+
+        switch (statement)
         {
-            ParamClass classStatement => AddClass(classStatement, mergeOption) as ParamClass,
-            ParamParameter parameterStatement => AddParameter(parameterStatement),
-            _ => throw new Exception($"Unknown statement type \"{statement.GetType().FullName}\".")
-        };
-        if (Accessibility is not ParamContextAccessibility.Default
-            && statement is ParamDeleteStatement
-            && (Accessibility & ParamContextAccessibility.DeletionProhibited) != ParamContextAccessibility.Default
-        ) throw new AccessViolationException("This context does not allow the deletion of class members.");
-        if (mergeOption.ShouldCompute()) return computable.ComputeOnContext(this, mergeOption);
-        _computableStatements.Add(computable);
-        return computable;
+            case ParamClass classStatement when statement is not IParamComputableStatement:
+                return AddClass(classStatement, mergeOption) as ParamClass;
+            case ParamParameter parameterStatement when statement is not IParamComputableStatement:
+                return AddParameter(parameterStatement);
+            case IParamComputableStatement when Accessibility is not ParamContextAccessibility.Default && statement is ParamDeleteStatement
+                && (Accessibility & ParamContextAccessibility.DeletionProhibited) != ParamContextAccessibility.Default:
+                throw new AccessViolationException("This context does not allow the deletion of class members.");
+            case IParamComputableStatement computable when mergeOption.ShouldCompute():
+                return computable.ComputeOnContext(this, mergeOption);
+            case IParamComputableStatement computable:
+                _computableStatements.Add(computable);
+                return computable;
+            default:
+                throw new Exception($"Unknown statement type \"{statement.GetType().FullName}\".");
+        }
     }
 
-    public ParamContext? RemoveClass(string className)
+    public IParamContext? RemoveClass(string className)
     {
         if (!_classes.TryGetValue(className, out var clazz) && !_classes.TryRemove(className, out clazz))
             throw new IOException($"Failed to remove context under the name {className}.");
         return clazz;
     }
 
-    public ParamContext MergeWith(ParamContext context, bool strict)
+    public IParamContext MergeWith(IParamContext context, bool strict)
     {
-        AddStatements(context.Statements, strict ? ParamComputeOption.ComputeStrict : ParamComputeOption.Compute);
+        this.AddStatements(context.Statements, strict ? ParamComputeOption.ComputeStrict : ParamComputeOption.Compute);
         return this;
     }
 
-
-    protected ParamContext? AddClass(ParamContext? context, ParamComputeOption mergeOption)
+    public IParamContext? AddClass(IParamContext? context, ParamComputeOption mergeOption)
     {
         if (context is null) return null;
         if ((Accessibility & ParamContextAccessibility.CompleteImmutability) != ParamContextAccessibility.Default)
@@ -89,28 +93,6 @@ public abstract class ParamContext : IParamContext
             ParamComputeOption.ComputeStrict => existing.MergeWith(context, true),
             _ => throw new ArgumentOutOfRangeException(nameof(mergeOption), mergeOption, null)
         };
-    }
-
-    public void AddClasses(ICollection<ParamClass?>? classes, ParamComputeOption computeOption)
-    {
-        if (classes == null) return;
-        foreach (var @class in classes)
-            if (@class != null) AddClass(@class, computeOption);
-    }
-
-    public void AddStatements(IEnumerable<IParamStatement?>? statements, ParamComputeOption computeOption)
-    {
-        if (statements == null) return;
-        foreach (var statement in statements)
-            if (statement != null) AddStatement(statement, computeOption);
-    }
-
-
-    public void AddParameters(IEnumerable<ParamParameter?>? parameters)
-    {
-        if (parameters == null) return;
-        foreach (var parameter in parameters)
-            if (parameter != null) AddParameter(parameter);
     }
 
     public ParamParameter? AddParameter(ParamParameter? parameter)

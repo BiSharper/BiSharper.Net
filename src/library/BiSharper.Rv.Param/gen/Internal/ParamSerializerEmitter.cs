@@ -68,7 +68,26 @@ internal static class ParamSerializerEmitter
         context.AddSource($"{fullType}.ParamSerializer.g.cs", writer.ToString());
     }
 
-    private static void EmitSource(this ParamSerializableType meta, StringWriter writer)
+    private static void EmitSource(this ParamSerializableType meta, TextWriter writer)
+    {
+        writer.WriteLine(
+            $$"""
+            public partial {{(meta.IsRecord, meta.IsValueType) switch
+            {
+                (true, true) => "record struct",
+                (true, false) => "record",
+                (false, true) => "struct",
+                (false, false) => "class",
+            }}} {{meta.TypeName}} : {{meta.Reference.ParamContextInterface}} {
+            
+                // ParamSerializable Construction
+                {{meta.EmitConstruction()}}
+            }
+            """
+        );
+    }
+
+    private static string EmitConstruction(this ParamSerializableType meta)
     {
         throw new NotImplementedException();
     }

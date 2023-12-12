@@ -31,6 +31,4 @@ public class ParamSerializerGenerator : IIncrementalGenerator
 
     private static bool IsParamSerializable(SyntaxNode node, CancellationToken token) =>
         node is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax or InterfaceDeclarationSyntax;
-
-
 }

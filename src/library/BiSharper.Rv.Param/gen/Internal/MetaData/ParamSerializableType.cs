@@ -8,24 +8,31 @@ namespace BiSharper.Rv.Param.Generator.Internal.MetaData;
 
 internal readonly struct ParamSerializableType
 {
-    private readonly ReferenceSymbols _reference;
+    public readonly ReferenceSymbols Reference;
     public readonly INamedTypeSymbol Symbol;
     public ParamSerializationMode SerializationMode { get; }
     public string TypeName { get; }
     public ParamSerializableMember[] Members { get; }
+    public bool IsValueType { get; }
+    public bool IsUnmanagedType { get; }
+    public bool IsRecord { get; }
+    public bool IsInterfaceOrAbstract { get; }
 
-    public ParamSerializableType(INamedTypeSymbol typeSymbol, ReferenceSymbols reference)
+    public ParamSerializableType(INamedTypeSymbol symbol, ReferenceSymbols reference)
     {
-        _reference = reference;
-        Symbol = typeSymbol;
-        SerializationMode = IdentifySerializationMode(typeSymbol, reference);
+        Reference = reference;
+        Symbol = symbol;
+        SerializationMode = IdentifySerializationMode(symbol, reference);
         TypeName = Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-
 
         Members = Symbol.GetAllMembers()
             .Where(ShouldUseMember)
-            .Select(symbol => ParamSerializableMember.Create(symbol, reference))
+            .Select(s => ParamSerializableMember.Create(s, reference))
             .ToArray();
+        IsValueType = symbol.IsValueType;
+        IsUnmanagedType = symbol.IsUnmanagedType;
+        IsInterfaceOrAbstract = symbol.IsAbstract;
+        IsRecord = symbol.IsRecord;
     }
 
     public static ParamSerializationMode IdentifySerializationMode(INamedTypeSymbol symbol, ReferenceSymbols reference)
@@ -40,7 +47,7 @@ internal readonly struct ParamSerializableType
 
     public bool ShouldUseMember(ISymbol symbol) =>
         symbol is (IFieldSymbol or IPropertySymbol) and { IsStatic: false, IsImplicitlyDeclared: false }
-        && !symbol.ContainsAttribute(_reference.ParamIgnoreAttribute)
+        && !symbol.ContainsAttribute(Reference.ParamIgnoreAttribute)
         && symbol.DeclaredAccessibility is Accessibility.Public &&
         (
             symbol is not IPropertySymbol property
@@ -50,7 +57,13 @@ internal readonly struct ParamSerializableType
 
     public bool ValidateForGeneration(TypeDeclarationSyntax syntax, out Diagnostic? diagnostic)
     {
-
+        if (SerializationMode == ParamSerializationMode.SkipGeneration)
+        {
+            diagnostic = null;
+            return true;
+        }
         throw new NotImplementedException();
     }
+
+
 }
