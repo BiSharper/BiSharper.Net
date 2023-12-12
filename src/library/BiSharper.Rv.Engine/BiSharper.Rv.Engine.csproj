@@ -12,7 +12,7 @@
       <ProjectReference Include="..\BiSharper.Rv.Param\common\BiSharper.Rv.Param.Common.csproj" />
       <ProjectReference Include="..\BiSharper.Rv.Param\gen\BiSharper.Rv.Param.Generator.csproj" />
       <ProjectReference Include="..\BiSharper.Rv.Param\src\BiSharper.Rv.Param.csproj" />
-      <ProjectReference Include="..\BiSharper.Rv\BiSharper.Rv.csproj" />
+      <ProjectReference Include="..\BiSharper.Rv\src\BiSharper.Rv\BiSharper.Rv.csproj" />
       <ProjectReference Include="..\BiSharper\BiSharper.csproj" />
     </ItemGroup>
 

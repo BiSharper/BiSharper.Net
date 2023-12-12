@@ -1,4 +1,4 @@
-﻿namespace BiSharper.Rv;
+﻿namespace BiSharper.Rv.Common;
 
 public enum RvEngineType
 {

@@ -1,12 +1,12 @@
 ﻿namespace BiSharper.Rv;
 
-public readonly struct RvColor(float red, float green, float blue, float alpha)
+public readonly struct RvColor
 {
     public const int ChannelMin = byte.MinValue, ChannelMax = byte.MaxValue;
-    public float Red { get; } = red;
-    public float Green { get; } = green;
-    public float Blue { get; } = blue;
-    public float Alpha { get; } = alpha;
+    public float Red { get; }
+    public float Green { get; }
+    public float Blue { get; }
+    public float Alpha { get; }
 
     public RvColor(uint compressed) : this(
         UnpackRed(in compressed),
@@ -16,6 +16,14 @@ public readonly struct RvColor(float red, float green, float blue, float alpha)
     )
     {
 
+    }
+
+    public RvColor(float red, float green, float blue, float alpha)
+    {
+        Red = red;
+        Green = green;
+        Blue = blue;
+        Alpha = alpha;
     }
 
 
