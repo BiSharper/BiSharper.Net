@@ -2,4 +2,4 @@
 
 namespace BiSharper.Rv.Param.Serialization;
 
-public interface IParamSerializable : IParamContext;
+public interface IParamSerializable;

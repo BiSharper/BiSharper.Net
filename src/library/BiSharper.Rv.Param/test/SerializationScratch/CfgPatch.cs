@@ -16,7 +16,6 @@ public partial struct CfgPatch
     [ParamMember("requiredVersion")]
     public partial float RequiredVersion();
 
-
     [ParamMember("requiredAddons")]
     public partial IEnumerable<string> RequiredAddons();
 }

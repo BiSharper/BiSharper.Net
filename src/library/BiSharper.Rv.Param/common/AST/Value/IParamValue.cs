@@ -1,3 +1,5 @@
-﻿namespace BiSharper.Rv.Param.AST.Value;
+﻿using BiSharper.Rv.Param.Serialization;
 
-public interface IParamValue;
+namespace BiSharper.Rv.Param.AST.Value;
+
+public interface IParamValue : IParamSerializable;
