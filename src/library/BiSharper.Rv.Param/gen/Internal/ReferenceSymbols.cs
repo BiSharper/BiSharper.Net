@@ -9,8 +9,8 @@ internal readonly struct ReferenceSymbols
         "BiSharper.Rv.Param.Serialization.Attribute.ParamSerializableAttribute";
     public Compilation Compilation { get; }
 
-    public INamedTypeSymbol ParamParameterNameAttribute =>
-        GetTypeByMetadataName("BiSharper.Rv.Param.Serialization.Attribute.ParamRequiredAttribute");
+    public INamedTypeSymbol ParamMemberAttribute =>
+        GetTypeByMetadataName("BiSharper.Rv.Param.Serialization.Attribute.ParamMemberAttribute");
     public INamedTypeSymbol ParamRequiredAttribute =>
         GetTypeByMetadataName("BiSharper.Rv.Param.Serialization.Attribute.ParamRequiredAttribute");
     public INamedTypeSymbol ParamIgnoreAttribute =>

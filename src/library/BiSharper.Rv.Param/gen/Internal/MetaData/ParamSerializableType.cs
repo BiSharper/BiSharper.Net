@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using BiSharper.Rv.Param.Serialization;
 using Microsoft.CodeAnalysis;
@@ -12,11 +14,13 @@ internal readonly struct ParamSerializableType
     public readonly INamedTypeSymbol Symbol;
     public ParamSerializationMode SerializationMode { get; }
     public string TypeName { get; }
-    public ParamSerializableMember[] Members { get; }
+    public IEnumerable<ParamSerializableMember> Members { get; }
     public bool IsValueType { get; }
+    public bool IsReadOnly { get; }
     public bool IsUnmanagedType { get; }
     public bool IsRecord { get; }
     public bool IsInterfaceOrAbstract { get; }
+    public bool IsReferenceStruct { get; }
 
     public ParamSerializableType(INamedTypeSymbol symbol, ReferenceSymbols reference)
     {
@@ -24,16 +28,33 @@ internal readonly struct ParamSerializableType
         Symbol = symbol;
         SerializationMode = IdentifySerializationMode(symbol, reference);
         TypeName = Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-
-        Members = Symbol.GetAllMembers()
-            .Where(ShouldUseMember)
-            .Select(s => ParamSerializableMember.Create(s, reference))
-            .ToArray();
+        Members = GatherMembers(symbol, reference);
         IsValueType = symbol.IsValueType;
+        IsReadOnly = symbol.IsReadOnly;
         IsUnmanagedType = symbol.IsUnmanagedType;
+        IsReferenceStruct = symbol.IsRefLikeType;
         IsInterfaceOrAbstract = symbol.IsAbstract;
         IsRecord = symbol.IsRecord;
     }
+
+    public static IEnumerable<ParamSerializableMember> GatherMembers(INamedTypeSymbol typeSymbol, ReferenceSymbols reference)
+    {
+        foreach (var member in typeSymbol.GetAllMembers())
+        {
+            if(!ShouldUseMember(member, reference)) continue;
+            Debug.Assert(member is not null);
+            yield return ParamSerializableMember.Create(
+                typeSymbol,
+                IdentifyMemberName(member!, reference),
+                typeSymbol.IsReadOnly,
+                reference
+            );
+        }
+    }
+
+
+    public static string? IdentifyMemberName(ISymbol symbol, ReferenceSymbols reference) =>
+        (string?) symbol.GetAttribute(reference.ParamMemberAttribute)?.ConstructorArguments.FirstOrDefault().Value;
 
     public static ParamSerializationMode IdentifySerializationMode(INamedTypeSymbol symbol, ReferenceSymbols reference)
     {
@@ -45,9 +66,9 @@ internal readonly struct ParamSerializableType
         return (ParamSerializationMode)generateType;
     }
 
-    public bool ShouldUseMember(ISymbol symbol) =>
+    public static bool ShouldUseMember(ISymbol? symbol, ReferenceSymbols reference) =>
         symbol is (IFieldSymbol or IPropertySymbol) and { IsStatic: false, IsImplicitlyDeclared: false }
-        && !symbol.ContainsAttribute(Reference.ParamIgnoreAttribute)
+        && !symbol.ContainsAttribute(reference.ParamIgnoreAttribute)
         && symbol.DeclaredAccessibility is Accessibility.Public &&
         (
             symbol is not IPropertySymbol property
@@ -62,6 +83,7 @@ internal readonly struct ParamSerializableType
             diagnostic = null;
             return true;
         }
+
         throw new NotImplementedException();
     }
 

@@ -9,8 +9,10 @@ internal readonly struct ParamSerializableMember
     public readonly ISymbol Symbol;
     public readonly ReferenceSymbols Reference;
     public string Name { get; }
+    public string MemberName { get; }
     public ITypeSymbol MemberType { get; }
     public bool IsSettable { get; }
+    public bool IsReadOnly { get; }
     public bool IsRef { get; }
     public bool IsAssignable { get; }
     public bool IsProperty { get; private init; }
@@ -25,32 +27,36 @@ internal readonly struct ParamSerializableMember
     }
 
 
-    public static ParamSerializableMember Create(ISymbol symbol, ReferenceSymbols reference) => symbol switch
+    public static ParamSerializableMember Create(ISymbol symbol, string? memberName, bool isReadOnly, ReferenceSymbols reference) => symbol switch
     {
-        IFieldSymbol f => new ParamSerializableMember(f, reference),
-        IPropertySymbol p => new ParamSerializableMember(p, reference),
+        IFieldSymbol f => new ParamSerializableMember(f, memberName, isReadOnly, reference),
+        IPropertySymbol p => new ParamSerializableMember(p, memberName, isReadOnly, reference),
         _ => throw new Exception("Symbol must be field or property!")
     };
 
-    private ParamSerializableMember(IFieldSymbol field, ReferenceSymbols reference)
+    private ParamSerializableMember(IFieldSymbol field, string? memberName, bool isReadOnly, ReferenceSymbols reference)
     {
         Symbol = field;
         Name = field.Name;
+        MemberName = memberName ?? Name;
         Reference = reference;
         MemberType = field.Type;
         IsField = true;
         IsRef = field.RefKind is RefKind.Ref or RefKind.RefReadOnly;
+        IsReadOnly = isReadOnly | field.IsReadOnly;
         IsAssignable = (IsSettable = !field.IsReadOnly) && !field.IsRequired;
         IsRequired = field.ContainsAttribute(reference.ParamRequiredAttribute);
     }
 
-    private ParamSerializableMember(IPropertySymbol property, ReferenceSymbols reference)
+    private ParamSerializableMember(IPropertySymbol property, string? memberName, bool isReadOnly, ReferenceSymbols reference)
     {
         Symbol = property;
         Name = property.Name;
+        MemberName = memberName ?? Name;
         Reference = reference;
         MemberType = property.Type;
         IsField = false;
+        IsReadOnly = isReadOnly | property.IsReadOnly;
         IsAssignable = (IsSettable = !property.IsReadOnly) && property is { IsRequired: false, SetMethod.IsInitOnly: false };
         IsRef = property.RefKind is RefKind.Ref or RefKind.RefReadOnly;
         IsRequired = property.ContainsAttribute(reference.ParamRequiredAttribute);

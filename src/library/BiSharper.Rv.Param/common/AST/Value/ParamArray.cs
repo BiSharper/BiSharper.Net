@@ -1,15 +1,25 @@
 ﻿using System.Collections;
-using System.Collections.Concurrent;
-using BiSharper.Rv.Param.AST.Abstraction;
 
 namespace BiSharper.Rv.Param.AST.Value;
 
-public readonly struct ParamArray : IEnumerable<IParamValue>, IParamValue
+
+public readonly struct ParamArray : IParamArray<IParamValue>
 {
-    public ConcurrentBag<IParamValue> Values { get; }
-    public ParamArray(IEnumerable<IParamValue> values) => Values = new ConcurrentBag<IParamValue>(values);
+    public List<IParamValue> Values { get; }
+    public ParamArray(IEnumerable<IParamValue> values) => Values = new List<IParamValue>(values);
     public IEnumerator<IParamValue> GetEnumerator() =>
         Values.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() =>
+        GetEnumerator();
+}
+
+public readonly struct ParamArray<T> : IParamArray<T> where T : IParamValue
+{
+    public List<T> Values { get; }
+    public ParamArray(IEnumerable<T> values) => Values = new List<T>(values);
+    public IEnumerator<T> GetEnumerator() =>
+        Values.GetEnumerator();
+
     IEnumerator IEnumerable.GetEnumerator() =>
         GetEnumerator();
 }

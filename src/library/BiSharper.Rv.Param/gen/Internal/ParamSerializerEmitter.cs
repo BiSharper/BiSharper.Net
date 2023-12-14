@@ -71,6 +71,7 @@ internal static class ParamSerializerEmitter
     private static void EmitSource(this ParamSerializableType meta, TextWriter writer)
     {
         writer.WriteLine(
+            //TODO: Readonly keyword
             $$"""
             public partial {{(meta.IsRecord, meta.IsValueType) switch
             {
@@ -80,6 +81,9 @@ internal static class ParamSerializerEmitter
                 (false, false) => "class",
             }}} {{meta.TypeName}} : {{meta.Reference.ParamContextInterface}} {
             
+                // ParamSerializable Members
+                {{meta.EmitMembers()}}
+            
                 // ParamSerializable Construction
                 {{meta.EmitConstruction()}}
             }
@@ -87,10 +91,18 @@ internal static class ParamSerializerEmitter
         );
     }
 
-    private static string EmitConstruction(this ParamSerializableType meta)
-    {
-        throw new NotImplementedException();
-    }
+    private static string EmitMembers(this ParamSerializableType meta) =>
+    $$"""
+      
+
+      """;
+
+    private static string EmitConstruction(this ParamSerializableType meta) =>
+        $$"""
+        public {{meta.TypeName}}({{meta.TypeName}} context) {
+            
+        }
+        """;
 
     private static bool ShouldGenerateSerializableType(
         INamedTypeSymbol typeSymbol,
