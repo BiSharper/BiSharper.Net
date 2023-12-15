@@ -19,8 +19,11 @@ internal readonly struct ParamSerializableMember
     public bool IsAssignable { get; }
     public bool IsProperty { get; private init; }
     public bool IsRequired { get; private init; }
+    //if true we can omit putting an actual value in the generation as the member is the value and inherits from the api
     public bool IsParamApi { get => _isParamApi; private init => _isParamApi = value; }
-    private readonly bool _isParamApi;
+    public bool IsEnumerable { get => _isEnumerableType; private init => _isEnumerableType = value; }
+
+    private readonly bool _isParamApi, _isEnumerableType;
 
     public bool IsField
     {
@@ -50,7 +53,7 @@ internal readonly struct ParamSerializableMember
         IsReadOnly = isReadOnly | field.IsReadOnly;
         IsAssignable = !IsReadOnly && !field.IsRequired;
         IsRequired = field.ContainsAttribute(reference.ParamRequiredAttribute);
-        Kind = ParseKind(ref _isParamApi);
+        Kind = ParseKind(ref _isParamApi, ref _isEnumerableType);
     }
 
     private ParamSerializableMember(IPropertySymbol property, string? memberName, bool isReadOnly, ReferenceSymbols reference)
@@ -65,10 +68,10 @@ internal readonly struct ParamSerializableMember
         IsAssignable = (IsSettable = !property.IsReadOnly) && property is { IsRequired: false, SetMethod.IsInitOnly: false };
         IsRef = property.RefKind is RefKind.Ref or RefKind.RefReadOnly;
         IsRequired = property.ContainsAttribute(reference.ParamRequiredAttribute);
-        Kind = ParseKind(ref _isParamApi);
+        Kind = ParseKind(ref _isParamApi, ref _isEnumerableType);
     }
 
-    private ParamMemberKind ParseKind(ref bool isParamApi)
+    private ParamMemberKind ParseKind(ref bool isParamApi, ref bool isEnumerable)
     {
         if (MemberType.SpecialType is
                 SpecialType.System_Object or
@@ -78,7 +81,30 @@ internal readonly struct ParamSerializableMember
             || MemberType.TypeKind is TypeKind.Delegate
            ) goto EndCase;
         if (Reference.IsParamObject(MemberType))
+        {
+            isParamApi = true;
             return ParamMemberKind.Object;
+        }
+
+        if (Reference.IsParamValue(MemberType))
+        {
+            isParamApi = true;
+            if (Reference.IsParamArray(MemberType))
+            {
+                isEnumerable = true;
+                //TODO
+            }
+
+            if (SymbolEqualityComparer.Default.Equals(MemberType, Reference.ParamStringStruct))
+                return ParamMemberKind.String;
+            if (SymbolEqualityComparer.Default.Equals(MemberType, Reference.ParamFloatStruct))
+                return ParamMemberKind.Float;
+            if (SymbolEqualityComparer.Default.Equals(MemberType, Reference.ParamIntegerStruct))
+                return ParamMemberKind.Integer;
+            if (SymbolEqualityComparer.Default.Equals(MemberType, Reference.ParamDoubleStruct))
+                return ParamMemberKind.Double;
+
+        }
         if (MemberType.TypeKind == TypeKind.Enum)
             return Marshal.SizeOf(MemberType) <= 4 ? ParamMemberKind.Integer : ParamMemberKind.Double;
         switch (MemberType.SpecialType)

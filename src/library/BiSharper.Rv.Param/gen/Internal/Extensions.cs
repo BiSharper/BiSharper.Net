@@ -32,6 +32,19 @@ internal static class Extensions
     public static bool ContainsAttribute(this ISymbol symbol, INamedTypeSymbol attribute) =>
         symbol.GetAttributes().Any(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, attribute));
 
+    public static bool InheritsInterface(this ITypeSymbol symbol, INamedTypeSymbol targetInterface)
+    {
+        foreach (var @interface in symbol.AllInterfaces)
+        {
+            if (SymbolEqualityComparer.Default.Equals(@interface, targetInterface))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static bool EqualsUnconstructedGenericType(this INamedTypeSymbol left, INamedTypeSymbol right)
     {
         var l = left.IsGenericType ? left.ConstructUnboundGenericType() : left;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BiSharper.Rv.Param.Generator.Internal.MetaData;
@@ -85,18 +86,29 @@ internal static class ParamSerializerEmitter
 
 
 
-    private static string EmitMember(this ParamSerializableMember meta) =>
-        """
+    private static string EmitMember(this ParamSerializableMember member)
+    {
+        if (member.IsParamApi)
+        {
+            return member.Kind switch
+            {
+                ParamMemberKind.Object => throw new NotImplementedException(),
+                ParamMemberKind.NonSerializable => throw new NotImplementedException(),
+                ParamMemberKind.Array => throw new NotImplementedException(),
+                ParamMemberKind.TypedArray => throw new NotImplementedException(),
+                //Member is ParamValueType; no cast support needed member IS value
+                _ => """
+                     
+                     
+                     """
+            };
+        }
 
+        throw new NotImplementedException();
+    }
 
-        """;
-
-    private static string EmitConstruction(this ParamSerializableType meta) =>
-       $$"""
-       public {{meta.TypeName}}({{meta.TypeName}} context) {
-           
-       }
-       """;
+    //TODO: Type Construction
+    private static string EmitConstruction(this ParamSerializableType meta) => "";
 
     private static bool ShouldGenerateSerializableType(
         INamedTypeSymbol typeSymbol,
