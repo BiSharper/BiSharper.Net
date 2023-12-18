@@ -3,7 +3,7 @@ using BiSharper.Rv.Param.Serialization;
 
 namespace BiSharper.Rv.Param.AST.Abstraction;
 
-public interface IParamContext : IParamStatement, IParamSerializable
+public interface IParamContext : IParamStatement
 {
     ParamContextAccessibility Accessibility { get; }
     string ContextName { get; }

@@ -1,8 +1,11 @@
-﻿using BiSharper.Rv.Param.AST.Abstraction;
+﻿namespace BiSharper.Rv.Param.AST.Value.Numeric;
 
-namespace BiSharper.Rv.Param.AST.Value;
+public interface IParamInteger : IParamValue
+{
+    public int Value { get; }
+}
 
-public readonly struct ParamInteger : IParamValue
+public readonly struct ParamInteger : IParamInteger
 {
     public int Value { get; }
     public ParamInteger(int value) => Value = value;

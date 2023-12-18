@@ -1,6 +1,9 @@
-﻿using BiSharper.Rv.Param.AST.Abstraction;
+﻿namespace BiSharper.Rv.Param.AST.Value.Numeric;
 
-namespace BiSharper.Rv.Param.AST.Value;
+public interface IParamFloat : IParamValue
+{
+    public int Value { get; }
+}
 
 public readonly struct ParamFloat : IParamValue
 {

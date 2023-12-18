@@ -13,4 +13,8 @@
       <ProjectReference Include="..\..\BiSharper.Rv\common\BiSharper.Rv.Common\BiSharper.Rv.Common.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="System.Memory" Version="4.5.4" />
+    </ItemGroup>
+
 </Project>

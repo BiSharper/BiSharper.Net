@@ -10,10 +10,4 @@
       <ProjectReference Include="..\..\src\BiSharper.Rv.Param.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Compile Update="CfgPatch.IParamContext.cs">
-        <DependentUpon>CfgPatch.cs</DependentUpon>
-      </Compile>
-    </ItemGroup>
-
 </Project>

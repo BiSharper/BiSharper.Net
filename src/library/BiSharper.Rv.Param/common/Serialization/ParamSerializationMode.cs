@@ -3,6 +3,6 @@
 public enum ParamSerializationMode : byte
 {
     ClassGeneration,
-    ArrayGeneration,
+    ValueGeneration,
     SkipGeneration
 }

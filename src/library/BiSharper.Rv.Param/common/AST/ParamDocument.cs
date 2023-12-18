@@ -2,7 +2,9 @@
 
 namespace BiSharper.Rv.Param.AST;
 
-public sealed class ParamDocument : ParamContext
+public interface IParamDocument : IParamContext;
+
+public sealed class ParamDocument : ParamContext, IParamDocument
 {
     public ParamDocument(string name) : base(name)
     {

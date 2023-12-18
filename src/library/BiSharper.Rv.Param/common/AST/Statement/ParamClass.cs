@@ -2,11 +2,16 @@
 
 namespace BiSharper.Rv.Param.AST.Statement;
 
-public sealed class ParamClass : ParamContext, IParamContextualStatement
+public interface IParamClass : IParamContext, IParamContextualStatement
+{
+    public string? ConformsTo { get; }
+}
+
+public sealed class ParamClass : ParamContext, IParamClass
 {
     public IParamElement Parent => (IParamElement) ParentContext;
     public ParamContext ParentContext { get; }
-    public string? ConformsTo { get; init; }
+    public string? ConformsTo { get; set; }
 
     public ParamClass(string name, ParamContext parent, string? super = null) : base(name)
     {
