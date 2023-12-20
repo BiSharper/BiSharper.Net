@@ -37,7 +37,7 @@ internal readonly struct SymbolReference
     public INamedTypeSymbol? InterfaceParamDouble { get; private init; }
     public INamedTypeSymbol? InterfaceParamExpression { get; private init; }
     public INamedTypeSymbol? InterfaceParamFloat { get; private init; }
-    public INamedTypeSymbol? AttributeParamMember { get; private init; }
+    public INamedTypeSymbol? AttributeParamProperty { get; private init; }
     public INamedTypeSymbol? AttributeParamSerializable { get; private init; }
     public INamedTypeSymbol? ParamListOfTType { get; private init; }
     public INamedTypeSymbol? ParamReadOnlyListOfTType { get; private init; }
@@ -71,7 +71,7 @@ internal readonly struct SymbolReference
         InterfaceParamFloat = GetOrResolveType(typeof(IParamFloat));
         InterfaceParamDouble = GetOrResolveType(typeof(IParamDouble));
         InterfaceParamInteger = GetOrResolveType(typeof(IParamInteger));
-        AttributeParamMember = GetOrResolveType(typeof(ParamMemberAttribute));
+        AttributeParamProperty = GetOrResolveType(typeof(ParamPropertyAttribute));
         AttributeParamSerializable = _compilation.GetTypeByMetadataName(ParamSerializableAttributeFullname);
         ParamListOfTType = GetOrResolveType(typeof(ParamList<>));
         ParamReadOnlyListOfTType = GetOrResolveType(typeof(ParamReadOnlyList<>));
@@ -80,6 +80,38 @@ internal readonly struct SymbolReference
         ParamStringType = GetOrResolveType(typeof(ParamString));
         ParamExpressionType = GetOrResolveType(typeof(ParamExpression));
         ParamFloatType = GetOrResolveType(typeof(ParamFloat));
+    }
+
+    public BaseParameterType? ValidatePropertyType(
+        ITypeSymbol type,
+        out int matchCount
+    )
+    {
+        BaseParameterType? determinedType = null;
+        var i = 0;
+
+        foreach (var iInterface in type.AllInterfaces)
+        {
+            determinedType = iInterface switch
+            {
+                _ when SymbolEqualityComparer.Default.Equals(iInterface, InterfaceParamInteger) =>
+                    AssignType(BaseParameterType.Integer),
+                _ when SymbolEqualityComparer.Default.Equals(iInterface, InterfaceParamDouble) =>
+                    AssignType(BaseParameterType.Double),
+                _ when SymbolEqualityComparer.Default.Equals(iInterface, InterfaceParamFloat) =>
+                    AssignType(BaseParameterType.Float),
+                _ when SymbolEqualityComparer.Default.Equals(iInterface, InterfaceParamString) =>
+                    AssignType(BaseParameterType.String),
+                _ when SymbolEqualityComparer.Default.Equals(iInterface, InterfaceParamExpression) =>
+                    AssignType(BaseParameterType.Expression),
+                _ => determinedType
+            };
+            continue;
+            BaseParameterType AssignType(BaseParameterType t) {i++; return t;}
+        }
+
+        matchCount = i;
+        return determinedType;
     }
 
     private INamedTypeSymbol? GetOrResolveType(Type type) => GetOrResolveType(type.FullName!);

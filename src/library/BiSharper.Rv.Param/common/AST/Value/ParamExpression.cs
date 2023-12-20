@@ -2,7 +2,7 @@
 
 namespace BiSharper.Rv.Param.AST.Value;
 
-public interface IParamExpression : IParamString;
+public interface IParamExpression : IParamValue;
 
 public readonly struct ParamExpression : IParamExpression
 {

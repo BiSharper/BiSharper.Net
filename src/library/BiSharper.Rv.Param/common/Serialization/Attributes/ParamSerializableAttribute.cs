@@ -4,14 +4,10 @@
 public class ParamSerializableAttribute : Attribute
 {
     public ParamSerializationMode Mode { get; }
-    public ParamGenerationMode GenerationMode { get; }
 
-    public ParamSerializableAttribute(
-        ParamSerializationMode mode = ParamSerializationMode.ClassGeneration,
-        ParamGenerationMode generationMode = Serialization.ParamGenerationMode.ReadOnly | Serialization.ParamGenerationMode.ReadWrite)
+    public ParamSerializableAttribute(ParamSerializationMode mode = ParamSerializationMode.ClassGeneration)
     {
         Mode = mode;
-        GenerationMode = generationMode;
     }
 
 }

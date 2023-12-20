@@ -3,6 +3,6 @@
 [Flags]
 public enum ParamGenerationMode
 {
-    ReadWrite,
-    ReadOnly
+    ImmutableOnly,
+    ImmutableAndMutable
 }
