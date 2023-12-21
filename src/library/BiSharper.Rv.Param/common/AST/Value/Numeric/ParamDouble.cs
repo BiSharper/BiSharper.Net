@@ -1,4 +1,6 @@
-﻿namespace BiSharper.Rv.Param.AST.Value.Numeric;
+﻿using BiSharper.Rv.Param.AST.Abstraction;
+
+namespace BiSharper.Rv.Param.AST.Value.Numeric;
 
 public interface IParamDouble : IParamValue
 {

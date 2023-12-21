@@ -9,13 +9,14 @@ public interface IParamClass : IParamContext, IParamContextualStatement
 
 public sealed class ParamClass : ParamContext, IParamClass
 {
-    public IParamElement Parent => (IParamElement) ParentContext;
-    public ParamContext ParentContext { get; }
+    public IParamContext ParentContext { get; }
     public string? ConformsTo { get; set; }
 
-    public ParamClass(string name, ParamContext parent, string? super = null) : base(name)
+
+    public ParamClass(string name, IParamContext parent, string? super = null) : base(name)
     {
         ParentContext = parent;
         ConformsTo = super;
     }
+
 }

@@ -7,7 +7,6 @@ public sealed class ParamParameter : IParamContextualStatement
 {
     public string Name { get; }
     public IParamValue Value { get; set; }
-    public IParamElement Parent => (IParamElement) ParentContext;
     public IParamContext ParentContext { get; }
 
     public ParamParameter(string name, IParamValue value, IParamContext parent)

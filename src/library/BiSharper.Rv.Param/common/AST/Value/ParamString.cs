@@ -1,4 +1,6 @@
-﻿namespace BiSharper.Rv.Param.AST.Value;
+﻿using BiSharper.Rv.Param.AST.Abstraction;
+
+namespace BiSharper.Rv.Param.AST.Value;
 
 public interface IParamString : IParamValue
 {

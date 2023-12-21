@@ -1,5 +1,4 @@
 ﻿using BiSharper.Rv.Param.Generator.Internal;
-using BiSharper.Rv.Param.Generator.Metadata;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -16,11 +15,8 @@ internal class ParamSerializerGenerator : IIncrementalGenerator
             generationContext.SyntaxProvider.ForAttributeWithMetadataName(
                 SymbolReference.ParamSerializableAttributeFullname,
                 predicate: static (node, _) => node is InterfaceDeclarationSyntax,
-                transform: static (ctx, _) =>
-                    new StudGenerationMeta((InterfaceDeclarationSyntax)ctx.TargetNode)
-                );
-
-
-        generationContext.RegisterSourceOutput(identifiedImplementations, static (context, stud) => stud.EmitSource(context));
+                transform: ParamSerializerParser.ParseStud
+            );
+        generationContext.RegisterSourceOutput(identifiedImplementations, ParamSerializerEmitter.EmitSource);
     }
 }

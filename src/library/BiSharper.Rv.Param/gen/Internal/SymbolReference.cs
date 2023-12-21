@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using BiSharper.Rv.Param.AST.Abstraction;
 using BiSharper.Rv.Param.AST.Statement;
 using BiSharper.Rv.Param.AST.Value;
@@ -15,6 +16,9 @@ namespace BiSharper.Rv.Param.Generator.Internal;
 internal readonly struct SymbolReference
 {
     private readonly Compilation _compilation;
+
+    private static readonly Dictionary<Compilation, SymbolReference> _symbolReferences =
+        new Dictionary<Compilation, SymbolReference>();
 
     // System Types
     public INamedTypeSymbol? InterfaceEnumerableOfTType { get; private init; }
@@ -48,7 +52,7 @@ internal readonly struct SymbolReference
     public INamedTypeSymbol? ParamFloatType { get; private init; }
     public const string ParamSerializableAttributeFullname = "BiSharper.Rv.Param.Serialization.Attributes.ParamSerializableAttribute";
 
-    public SymbolReference(Compilation compilation)
+    private SymbolReference(Compilation compilation)
     {
         _compilation = compilation;
 
@@ -117,4 +121,13 @@ internal readonly struct SymbolReference
     private INamedTypeSymbol? GetOrResolveType(Type type) => GetOrResolveType(type.FullName!);
 
     private INamedTypeSymbol? GetOrResolveType(string fullyQualifiedName) => _compilation.GetTypeByMetadataName(fullyQualifiedName);
+
+    public static SymbolReference ForCompilation(Compilation compilation)
+    {
+        if (!_symbolReferences.TryGetValue(compilation, out var symbolReference))
+        {
+            symbolReference = new SymbolReference(compilation);
+        }
+        return symbolReference;
+    }
 }

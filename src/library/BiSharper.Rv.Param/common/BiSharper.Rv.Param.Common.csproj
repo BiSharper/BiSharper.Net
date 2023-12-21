@@ -17,4 +17,22 @@
       <PackageReference Include="System.Memory" Version="4.5.4" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Update="AST\Abstraction\IParamContextualStatement.cs">
+        <DependentUpon>IParamStatement.cs</DependentUpon>
+      </Compile>
+      <Compile Update="AST\Abstraction\IParamComputableStatement.cs">
+        <DependentUpon>IParamStatement.cs</DependentUpon>
+      </Compile>
+      <Compile Update="AST\Statement\ParamClass.cs">
+        <DependentUpon>ParamContext.cs</DependentUpon>
+      </Compile>
+      <Compile Update="AST\Abstraction\IParamStatement.cs">
+        <DependentUpon>IParamElement.cs</DependentUpon>
+      </Compile>
+      <Compile Update="AST\Abstraction\IParamValue.cs">
+        <DependentUpon>IParamElement.cs</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
 </Project>
