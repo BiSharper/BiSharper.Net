@@ -6,8 +6,8 @@ using BiSharper.Rv.Param.AST.Statement;
 using BiSharper.Rv.Param.AST.Value;
 using BiSharper.Rv.Param.AST.Value.Enumerable;
 using BiSharper.Rv.Param.AST.Value.Numeric;
+using BiSharper.Rv.Param.Serialization;
 using BiSharper.Rv.Param.Serialization.Attributes;
-using BiSharper.Rv.Param.Serialization.Context;
 using Microsoft.CodeAnalysis;
 // ReSharper disable InconsistentNaming
 
@@ -16,9 +16,6 @@ namespace BiSharper.Rv.Param.Generator.Internal;
 internal readonly struct SymbolReference
 {
     private readonly Compilation _compilation;
-
-    private static readonly Dictionary<Compilation, SymbolReference> _symbolReferences =
-        new Dictionary<Compilation, SymbolReference>();
 
     // System Types
     public INamedTypeSymbol? InterfaceEnumerableOfTType { get; private init; }
@@ -31,7 +28,7 @@ internal readonly struct SymbolReference
     public INamedTypeSymbol IntegerType { get; private init; }
 
     // API Types
-    public INamedTypeSymbol? InterfaceParamSerializableContextType { get; private init; }
+    public INamedTypeSymbol InterfaceParamStud { get; private init; }
     public INamedTypeSymbol? InterfaceParamClass { get; private init; }
     public INamedTypeSymbol? InterfaceParamContext { get; private init; }
     public INamedTypeSymbol? InterfaceParamListOfTType { get; private init; }
@@ -52,7 +49,7 @@ internal readonly struct SymbolReference
     public INamedTypeSymbol? ParamFloatType { get; private init; }
     public const string ParamSerializableAttributeFullname = "BiSharper.Rv.Param.Serialization.Attributes.ParamSerializableAttribute";
 
-    private SymbolReference(Compilation compilation)
+    public SymbolReference(Compilation compilation)
     {
         _compilation = compilation;
 
@@ -65,7 +62,7 @@ internal readonly struct SymbolReference
         DoubleType = compilation.GetSpecialType(SpecialType.System_Double);
         IntegerType = compilation.GetSpecialType(SpecialType.System_Int32);
 
-        InterfaceParamSerializableContextType = GetOrResolveType(typeof(IParamSerializableContext));
+        InterfaceParamStud = GetOrResolveType(typeof(IParamStud))!;
         InterfaceParamContext = GetOrResolveType(typeof(IParamContext));
         InterfaceParamClass = GetOrResolveType(typeof(IParamClass));
         InterfaceParamListOfTType = GetOrResolveType(typeof(IParamArray<>));
@@ -122,12 +119,4 @@ internal readonly struct SymbolReference
 
     private INamedTypeSymbol? GetOrResolveType(string fullyQualifiedName) => _compilation.GetTypeByMetadataName(fullyQualifiedName);
 
-    public static SymbolReference ForCompilation(Compilation compilation)
-    {
-        if (!_symbolReferences.TryGetValue(compilation, out var symbolReference))
-        {
-            symbolReference = new SymbolReference(compilation);
-        }
-        return symbolReference;
-    }
 }

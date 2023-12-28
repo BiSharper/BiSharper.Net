@@ -8,5 +8,4 @@ public enum BaseParameterType
     Expression,
     Float,
     Array,
-
 }

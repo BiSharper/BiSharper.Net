@@ -7,7 +7,7 @@ namespace BiSharper.Rv.Param.AST.Statement;
 
 public abstract class ParamContext : IParamContext
 {
-    private readonly ConcurrentDictionary<string, ParamParameter> _parameters = new();
+    private readonly ConcurrentDictionary<string, IParamParameter> _parameters = new();
     private readonly ConcurrentDictionary<string, IParamContext> _classes = new();
     private readonly List<IParamComputableStatement> _computableStatements = [];
     public ParamContextAccessibility Accessibility { get; protected set; }
@@ -32,14 +32,14 @@ public abstract class ParamContext : IParamContext
 
     public bool HasStatement(IParamStatement statement) => statement switch
     {
-        ParamClass @class => _classes.ContainsKey(@class.ContextName),
-        ParamParameter param => _parameters.ContainsKey(param.Name),
+        IParamClass @class => _classes.ContainsKey(@class.ContextName),
+        IParamParameter param => _parameters.ContainsKey(param.Name),
         _ => _computableStatements.Contains(statement)
     };
 
     public bool TryGetClass(string name, out IParamContext? @class) => _classes.TryGetValue(name, out @class);
 
-    public bool TryGetParameter(string name, out ParamParameter? param) => _parameters.TryGetValue(name, out param);
+    public bool TryGetParameter(string name, out IParamParameter? param) => _parameters.TryGetValue(name, out param);
 
     public IParamStatement? AddStatement(IParamStatement? statement, ParamComputeOption mergeOption)
     {
@@ -47,9 +47,9 @@ public abstract class ParamContext : IParamContext
 
         switch (statement)
         {
-            case ParamClass classStatement when statement is not IParamComputableStatement:
-                return AddClass(classStatement, mergeOption) as ParamClass;
-            case ParamParameter parameterStatement when statement is not IParamComputableStatement:
+            case IParamClass classStatement:
+                return AddClass(classStatement, mergeOption);
+            case IParamParameter parameterStatement:
                 return AddParameter(parameterStatement);
             case IParamComputableStatement when Accessibility is not ParamContextAccessibility.Default && statement is ParamDeleteStatement
                 && (Accessibility & ParamContextAccessibility.DeletionProhibited) != ParamContextAccessibility.Default:
@@ -95,7 +95,7 @@ public abstract class ParamContext : IParamContext
         };
     }
 
-    public ParamParameter? AddParameter(ParamParameter? parameter)
+    public IParamParameter? AddParameter(IParamParameter? parameter)
     {
         if (parameter is null) return null;
         if ((Accessibility & ParamContextAccessibility.ImmutableProperties) != ParamContextAccessibility.Default)
@@ -128,12 +128,12 @@ public interface IParamContext : IParamStatement
 
     bool HasStatement(IParamStatement statement);
     bool TryGetClass(string name, out IParamContext? @class);
-    bool TryGetParameter(string name, out ParamParameter? param);
+    bool TryGetParameter(string name, out IParamParameter? param);
     IParamContext? AddClass(IParamContext? context, ParamComputeOption mergeOption);
     IParamStatement? AddStatement(IParamStatement? statement, ParamComputeOption mergeOption);
     IParamContext? RemoveClass(string className);
     IParamContext MergeWith(IParamContext context, bool strict);
-    ParamParameter? AddParameter(ParamParameter? parameter);
+    IParamParameter? AddParameter(IParamParameter? parameter);
     ParamExternalContext? FindExternalContext(string name);
 }
 
@@ -154,7 +154,7 @@ public static class ParamContextExtensions
     }
 
 
-    public static void AddParameters(this IParamContext context, IEnumerable<ParamParameter?>? parameters)
+    public static void AddParameters(this IParamContext context, IEnumerable<IParamParameter?>? parameters)
     {
         if (parameters == null) return;
         foreach (var parameter in parameters)
